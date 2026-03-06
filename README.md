@@ -180,5 +180,9 @@ Features:
 - `docs/worklog/2026-03-06-implementation-status.md`
 - `docs/plan/2026-03-06-intent-trajectory-variants-design.md`
 
-## Planned WSL Pipeline`r`n`r`n- `docs/plans/2026-03-06-wsl-px4-single-csv-pipeline-design.md``r`n- `docs/plans/2026-03-06-wsl-px4-single-csv-pipeline.md`
+## Planned WSL Pipeline
+
+- `docs/plans/2026-03-06-wsl-px4-single-csv-pipeline-design.md`
+- `docs/plans/2026-03-06-wsl-px4-single-csv-pipeline.md`
+
 

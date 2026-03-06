@@ -47,5 +47,11 @@ Variant mixture inside `non_straight_penetration` and `loiter` is controlled by 
 - some variant parameter ranges should still be visually spot-checked in the GUI to confirm that class differences are obvious enough for downstream training;
 - future dataset statistics should include `variant_name` so the realized class mix can be compared against the configured weights.
 
-## Planned WSL Single-CSV Pipeline`r`n`r`nThe approved design and implementation plan for the WSL-only single-CSV PX4 replay pipeline are saved in:`r`n`r`n- `docs/plans/2026-03-06-wsl-px4-single-csv-pipeline-design.md``r`n- `docs/plans/2026-03-06-wsl-px4-single-csv-pipeline.md`
+## Planned WSL Single-CSV Pipeline
+
+The approved design and implementation plan for the WSL-only single-CSV PX4 replay pipeline are saved in:
+
+- `docs/plans/2026-03-06-wsl-px4-single-csv-pipeline-design.md`
+- `docs/plans/2026-03-06-wsl-px4-single-csv-pipeline.md`
+
 
