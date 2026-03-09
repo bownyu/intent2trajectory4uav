@@ -1,0 +1,334 @@
+{
+  "schema_version": "1.0.0",
+  "output_root": "dataset_workspace",
+  "seed": 20260305,
+  "max_resample_attempts": 20,
+  "dt": 0.1,
+  "max_time": 600.0,
+  "class_quota": {
+    "hover": 100,
+    "straight_penetration": 100,
+    "non_straight_penetration": 100,
+    "loiter": 100,
+    "retreat": 100
+  },
+  "intent_profiles": {
+    "hover": {
+      "duration_range": [
+        60.0,
+        180.0
+      ],
+      "space": {
+        "x": [
+          -3000,
+          3000
+        ],
+        "y": [
+          -3000,
+          3000
+        ],
+        "z": [
+          50,
+          300
+        ]
+      },
+      "base_speed": [
+        0.1,
+        1.0
+      ],
+      "noise_sigma": [
+        0.1,
+        0.5
+      ],
+      "yaw_noise_sigma": 0.01
+    },
+    "straight_penetration": {
+      "start_radius": [
+        3000,
+        5000
+      ],
+      "start_z": [
+        100,
+        500
+      ],
+      "base_speed": [
+        10.0,
+        13.0
+      ],
+      "target_radius": 100
+    },
+    "non_straight_penetration": {
+      "start_radius": [
+        3000,
+        5000
+      ],
+      "start_z": [
+        100,
+        500
+      ],
+      "target_radius": 100,
+      "variants": {
+        "weave_approach": {
+          "weight": 0.35,
+          "base_speed": [
+            10.0,
+            13.0
+          ],
+          "lateral_amplitude": [
+            80,
+            260
+          ],
+          "lateral_period": [
+            15,
+            45
+          ],
+          "vertical_amplitude": [
+            10,
+            80
+          ]
+        },
+        "climb_then_dive": {
+          "weight": 0.25,
+          "base_speed": [
+            10.0,
+            13.0
+          ],
+          "climb_ratio": [
+            0.2,
+            0.4
+          ],
+          "climb_angle_deg": [
+            8,
+            20
+          ],
+          "dive_angle_deg": [
+            15,
+            35
+          ]
+        },
+        "turn_then_dive": {
+          "weight": 0.2,
+          "base_speed": [
+            10.0,
+            13.0
+          ],
+          "turn_angle_deg": [
+            35,
+            80
+          ],
+          "turn_radius": [
+            150,
+            500
+          ]
+        },
+        "zigzag_dive": {
+          "weight": 0.2,
+          "base_speed": [
+            10.0,
+            13.0
+          ],
+          "segments": [
+            3,
+            6
+          ],
+          "heading_jitter_deg": [
+            15,
+            35
+          ]
+        }
+      }
+    },
+    "loiter": {
+      "center_radius": [
+        1000,
+        4000
+      ],
+      "center_z": [
+        100,
+        500
+      ],
+      "yaw_policy": "tangent",
+      "variants": {
+        "circle_hold": {
+          "weight": 0.35,
+          "radius": [
+            180,
+            520
+          ],
+          "linear_speed": [
+            8.0,
+            12.0
+          ],
+          "duration_range": [
+            120,
+            220
+          ],
+          "vertical_wave": [
+            0.0,
+            10.0
+          ]
+        },
+        "ellipse_hold": {
+          "weight": 0.25,
+          "major_axis": [
+            240,
+            520
+          ],
+          "minor_axis": [
+            120,
+            320
+          ],
+          "linear_speed": [
+            8.0,
+            12.0
+          ],
+          "duration_range": [
+            120,
+            220
+          ],
+          "vertical_wave": [
+            0.0,
+            12.0
+          ]
+        },
+        "figure8_hold": {
+          "weight": 0.2,
+          "radius": [
+            180,
+            420
+          ],
+          "linear_speed": [
+            8.0,
+            11.0
+          ],
+          "duration_range": [
+            120,
+            240
+          ],
+          "vertical_wave": [
+            0.0,
+            10.0
+          ]
+        },
+        "offset_orbit": {
+          "weight": 0.2,
+          "radius": [
+            160,
+            420
+          ],
+          "center_offset": [
+            80,
+            260
+          ],
+          "linear_speed": [
+            8.0,
+            12.0
+          ],
+          "duration_range": [
+            120,
+            220
+          ],
+          "vertical_wave": [
+            0.0,
+            10.0
+          ]
+        }
+      }
+    },
+    "retreat": {
+      "start_radius": [
+        100,
+        500
+      ],
+      "start_z": [
+        50,
+        200
+      ],
+      "base_speed": [
+        10.0,
+        13.0
+      ],
+      "end_radius": 5000,
+      "distance_multiplier": 1.5,
+      "variants": {
+        "direct_escape": {
+          "weight": 0.4
+        },
+        "arc_escape": {
+          "weight": 0.25,
+          "lateral_amplitude": [
+            80.0,
+            180.0
+          ]
+        },
+        "zigzag_escape": {
+          "weight": 0.2,
+          "lateral_amplitude": [
+            60.0,
+            140.0
+          ],
+          "segments": [
+            3,
+            5
+          ]
+        },
+        "climb_escape": {
+          "weight": 0.15,
+          "climb_gain": [
+            80.0,
+            180.0
+          ]
+        }
+      }
+    }
+  },
+  "constraints": {
+    "intent_limits": {
+      "hover": {
+        "max_speed": 2.0,
+        "max_acc": 2.0,
+        "max_yaw_rate": 1.5
+      },
+      "straight_penetration": {
+        "max_speed": 13.0,
+        "max_acc": 5.0,
+        "max_yaw_rate": 0.3
+      },
+      "non_straight_penetration": {
+        "max_speed": 13.0,
+        "max_acc": 8.0,
+        "max_yaw_rate": 2.5
+      },
+      "loiter": {
+        "max_speed": 13.0,
+        "max_acc": 7.0,
+        "max_yaw_rate": 2.5
+      },
+      "retreat": {
+        "max_speed": 13.0,
+        "max_acc": 5.0,
+        "max_yaw_rate": 2.0
+      }
+    },
+    "space": {
+      "x": [
+        -6000,
+        6000
+      ],
+      "y": [
+        -6000,
+        6000
+      ],
+      "z": [
+        10,
+        600
+      ]
+    }
+  },
+  "progress": {
+    "enabled": true
+  },
+  "failure_logging": {
+    "include_failed_metadata": true
+  }
+}
