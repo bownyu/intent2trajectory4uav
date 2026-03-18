@@ -30,6 +30,8 @@ ENV/
 .vscode/
 *.swp
 *.swo
+openspec/
+.codex/
 
 # Generated data
 dataset_workspace/
