@@ -5,6 +5,14 @@ from typing import Dict, List
 from ..models import AirframeProfile, ensure_tuple
 
 
+def _get_profiles(config: Dict) -> Dict[str, AirframeProfile]:
+    profiles = config.get("_airframe_profiles")
+    if profiles is None:
+        profiles = build_airframe_profiles(config)
+        config["_airframe_profiles"] = profiles
+    return profiles
+
+
 def build_airframe_profiles(config: Dict) -> Dict[str, AirframeProfile]:
     raw_profiles = config["airframes"]["profiles"]
     profiles: Dict[str, AirframeProfile] = {}
@@ -30,29 +38,30 @@ def build_airframe_profiles(config: Dict) -> Dict[str, AirframeProfile]:
             allowed_styles={intent: list(styles) for intent, styles in raw["allowed_styles"].items()},
             validator_overrides={str(k): float(v) for k, v in (raw.get("validator_overrides") or {}).items()},
             selection_weight=float(raw.get("selection_weight", 1.0)),
+            enabled=bool(raw.get("enabled", True)),
+            attack_capability=dict(raw.get("attack_capability") or {}),
         )
     return profiles
 
 
 def get_airframe(config: Dict, name: str) -> AirframeProfile:
-    profiles = config.get("_airframe_profiles")
-    if profiles is None:
-        profiles = build_airframe_profiles(config)
-        config["_airframe_profiles"] = profiles
+    profiles = _get_profiles(config)
     if name not in profiles:
         raise ValueError(f"Unknown airframe '{name}'")
-    return profiles[name]
+    airframe = profiles[name]
+    if not airframe.enabled:
+        raise ValueError(f"Airframe '{name}' is disabled in config")
+    return airframe
 
 
 def sample_airframe(intent: str, config: Dict, rng) -> AirframeProfile:
-    profiles = config.get("_airframe_profiles")
-    if profiles is None:
-        profiles = build_airframe_profiles(config)
-        config["_airframe_profiles"] = profiles
+    profiles = _get_profiles(config)
 
-    candidates: List[AirframeProfile] = [profile for profile in profiles.values() if profile.allowed_styles.get(intent)]
+    candidates: List[AirframeProfile] = [
+        profile for profile in profiles.values() if profile.enabled and profile.allowed_styles.get(intent)
+    ]
     if not candidates:
-        raise ValueError(f"No airframes configured for intent '{intent}'")
+        raise ValueError(f"No enabled airframes configured for intent '{intent}'")
 
     total = sum(max(profile.selection_weight, 0.0) for profile in candidates)
     if total <= 0:

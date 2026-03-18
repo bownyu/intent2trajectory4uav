@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import Dict, Iterable, List, Sequence, Tuple
+from typing import Dict, List, Sequence
 
 from ..models import StationMetrics, Trajectory
 
@@ -93,6 +93,21 @@ def _linear_slope(xs: Sequence[float], ys: Sequence[float]) -> float:
     return numer / denom
 
 
+def _first_sustained_true(mask: Sequence[bool], window: int) -> int | None:
+    if not mask:
+        return None
+    for start in range(0, len(mask)):
+        end = min(start + window, len(mask))
+        if end <= start:
+            break
+        if all(mask[start:end]):
+            return start
+    for index, value in enumerate(mask):
+        if value:
+            return index
+    return None
+
+
 def compute_station_metrics(traj: Trajectory, bands: Dict[str, Sequence[float]], cfg: Dict, intent: str) -> StationMetrics:
     points = traj.points
     if len(points) < 2:
@@ -166,6 +181,33 @@ def compute_station_metrics(traj: Trajectory, bands: Dict[str, Sequence[float]],
         float(cfg["intent_regions"]["parameters"].get("w_abort", 8.0)),
     )
 
+    course_threshold = math.cos(math.radians(float(cfg["intent_regions"]["parameters"].get("alpha_course_deg", 30.0))))
+    yaw_threshold = math.cos(math.radians(float(cfg["intent_regions"]["parameters"].get("alpha_yaw_deg", 35.0))))
+    attack_cfg = cfg.get("attack_diversity") or {}
+    posterior_cfg = attack_cfg.get("posterior_metrics") or {}
+    pressure_threshold = math.cos(math.radians(float(posterior_cfg.get("pressure_alignment_deg", 35.0))))
+    commit_window = max(int(float(posterior_cfg.get("commit_window_sec", 2.0)) / max(traj.dt, EPS)), 1)
+    strong_commit_thr = float(posterior_cfg.get("commit_speed_min", max(close_thr * 4.0, 2.5)))
+    commit_mask = [
+        radial < -strong_commit_thr and max(course_align, yaw_align) > pressure_threshold
+        for radial, course_align, yaw_align in zip(radial_speeds, course_alignments, yaw_alignments)
+    ]
+    first_commit_idx = _first_sustained_true(commit_mask, commit_window)
+    commit_onset_ratio = 1.0 if first_commit_idx is None else first_commit_idx / max(len(commit_mask) - 1, 1)
+    inward_segments = [max(ranges[idx - 1] - ranges[idx], 0.0) for idx in range(1, len(ranges))]
+    total_inward = sum(inward_segments)
+    terminal_ratio = float(posterior_cfg.get("terminal_window_ratio", 0.25))
+    terminal_window = max(int(len(inward_segments) * terminal_ratio), 1)
+    terminal_inward = sum(inward_segments[-terminal_window:]) if inward_segments else 0.0
+    terminal_spike_ratio = terminal_inward / max(total_inward, EPS)
+    pressure_persistence = sum(1.0 for value in commit_mask if value) / max(len(commit_mask), 1)
+    body_point_persistence = sum(1.0 for value in yaw_alignments if value > pressure_threshold) / max(len(yaw_alignments), 1)
+    lateral_pressure_ratio = sum(
+        1.0
+        for tangential, radial, committed in zip(tangential_abs, radial_abs, commit_mask)
+        if committed and tangential > radial
+    ) / max(len(commit_mask), 1)
+
     values = {
         "duration": times[-1] - times[0],
         "start_range": ranges[0],
@@ -184,8 +226,8 @@ def compute_station_metrics(traj: Trajectory, bands: Dict[str, Sequence[float]],
         "dwell_ratio_in_band": dwell_ratio_in_band,
         "dwell_hold": dwell_hold,
         "dwell_loiter": dwell_loiter,
-        "course_point_ratio": sum(1.0 for value in course_alignments if value > math.cos(math.radians(cfg["intent_regions"]["parameters"].get("alpha_course_deg", 30.0)))) / len(course_alignments),
-        "yaw_point_ratio": sum(1.0 for value in yaw_alignments if value > math.cos(math.radians(cfg["intent_regions"]["parameters"].get("alpha_yaw_deg", 35.0)))) / len(yaw_alignments),
+        "course_point_ratio": sum(1.0 for value in course_alignments if value > course_threshold) / len(course_alignments),
+        "yaw_point_ratio": sum(1.0 for value in yaw_alignments if value > yaw_threshold) / len(yaw_alignments),
         "close_frac": close_frac,
         "net_close": net_close,
         "intrusion_depth": intrusion_depth,
@@ -201,6 +243,12 @@ def compute_station_metrics(traj: Trajectory, bands: Dict[str, Sequence[float]],
         "radial_neutrality": radial_neutrality,
         "mean_speed": _mean(speeds),
         "max_speed": max(speeds),
+        "start_speed": speeds[0],
         "altitude_excursion": altitude_excursion,
+        "pressure_persistence": pressure_persistence,
+        "commit_onset_ratio": commit_onset_ratio,
+        "terminal_spike_ratio": terminal_spike_ratio,
+        "body_point_persistence": body_point_persistence,
+        "lateral_pressure_ratio": lateral_pressure_ratio,
     }
     return StationMetrics(values=values, active_band_name=active_band_name)

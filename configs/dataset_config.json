@@ -21,14 +21,48 @@
       "z": [20.0, 800.0]
     }
   },
+  "attack_diversity": {
+    "profile_quota": {
+      "immediate_dash": 0.2,
+      "continuous_pressure": 0.25,
+      "staged_commit": 0.4,
+      "probe_commit": 0.15
+    },
+    "profile_compatibility": {
+      "immediate_dash": ["immediate_dash"],
+      "continuous_pressure": ["continuous_pressure"],
+      "staged_commit": ["staged_commit"],
+      "probe_commit": ["probe_commit", "staged_commit"]
+    },
+    "distribution": {
+      "minimum_early_commit_fraction": 0.25,
+      "minimum_low_terminal_fraction": 0.3,
+      "maximum_high_terminal_fraction": 0.35,
+      "early_commit_ratio_max": 0.15,
+      "low_terminal_spike_max": 0.35,
+      "high_terminal_spike_min": 0.45
+    },
+    "posterior_metrics": {
+      "commit_window_sec": 2.0,
+      "terminal_window_ratio": 0.25,
+      "pressure_alignment_deg": 35.0,
+      "continuous_pressure_min": 0.55,
+      "body_point_min": 0.6,
+      "immediate_duration_max": 40.0,
+      "staged_duration_min": 60.0,
+      "commit_speed_min": 4.0
+    }
+  },
   "diversity": {
-    "distance_threshold": 0.18,
+    "distance_threshold": 0.1,
     "bucket_bins": {
       "min_range": [0.0, 250.0, 600.0, 1200.0, 2400.0],
       "mean_speed_norm": [0.0, 0.25, 0.5, 0.75, 1.01],
       "uncertain_score": [0.0, 0.25, 0.5, 0.75, 1.01],
       "duration": [0.0, 40.0, 90.0, 150.0, 400.0],
-      "encircle_cycles": [0.0, 0.25, 0.75, 1.5, 4.0]
+      "encircle_cycles": [0.0, 0.25, 0.75, 1.5, 4.0],
+      "commit_onset_ratio": [0.0, 0.15, 0.35, 0.6, 1.01],
+      "terminal_spike_ratio": [0.0, 0.2, 0.35, 0.55, 1.01]
     }
   },
   "progress": {

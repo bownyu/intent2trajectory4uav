@@ -1,204 +1,1168 @@
 {
   "intents": {
     "attack": {
-      "direct_commit": {
-        "weight": 0.18,
-        "stages": [
-          {
-            "name": "close_in",
-            "duration_range": [18.0, 28.0],
-            "vr_cmd": {"reference": "v_cruise", "base_range": [-0.75, -0.5], "amplitude_range": [0.0, 0.08], "period_range": [12.0, 22.0], "envelope": "ramp_up"},
-            "vt_cmd": {"reference": "v_cruise", "base_range": [-0.08, 0.08]},
-            "vz_cmd": {"reference": "absolute", "base_range": [-0.3, 0.3]},
-            "yaw_mode": "course_locked",
-            "noise_profile": "attack_direct",
-            "flight_mode": "cruise"
+      "profiles": {
+        "immediate_dash": {
+          "weight": 0.22,
+          "maneuvers": {
+            "direct": {
+              "weight": 1.0,
+              "style_name": "immediate_dash_direct",
+              "duration_scale": 1.12,
+              "vr_scale": 1.15,
+              "stages": [
+                {
+                  "name": "launch_dash",
+                  "duration_range": [
+                    6.0,
+                    10.0
+                  ],
+                  "vr_cmd": {
+                    "reference": "v_dash",
+                    "base_range": [
+                      -0.95,
+                      -0.82
+                    ],
+                    "amplitude_range": [
+                      0.0,
+                      0.04
+                    ],
+                    "envelope": "ramp_up"
+                  },
+                  "vt_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      -0.06,
+                      0.06
+                    ]
+                  },
+                  "vz_cmd": {
+                    "reference": "absolute",
+                    "base_range": [
+                      -0.3,
+                      0.3
+                    ]
+                  },
+                  "yaw_mode": "lead_station",
+                  "noise_profile": "attack_launch",
+                  "flight_mode": "cruise"
+                },
+                {
+                  "name": "sustain_dash",
+                  "duration_range": [
+                    10.0,
+                    18.0
+                  ],
+                  "vr_cmd": {
+                    "reference": "v_dash",
+                    "base_range": [
+                      -0.86,
+                      -0.72
+                    ],
+                    "amplitude_range": [
+                      0.0,
+                      0.04
+                    ]
+                  },
+                  "vt_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      -0.04,
+                      0.04
+                    ]
+                  },
+                  "vz_cmd": {
+                    "reference": "absolute",
+                    "base_range": [
+                      -0.2,
+                      0.2
+                    ]
+                  },
+                  "yaw_mode": "course_locked",
+                  "noise_profile": "attack_sustain",
+                  "flight_mode": "cruise"
+                }
+              ]
+            }
           },
-          {
-            "name": "terminal_commit",
-            "duration_range": [10.0, 18.0],
-            "vr_cmd": {"reference": "v_dash", "base_range": [-0.95, -0.75], "amplitude_range": [0.0, 0.05], "envelope": "ramp_up"},
-            "vt_cmd": {"reference": "v_cruise", "base_range": [-0.05, 0.05]},
-            "vz_cmd": {"reference": "absolute", "base_range": [-0.2, 0.2]},
-            "yaw_mode": "station_facing",
-            "noise_profile": "attack_terminal",
-            "flight_mode": "cruise"
+          "start_context_weights": {
+            "outer_direct": 0.72,
+            "near_static": 0.28
           }
-        ]
-      },
-      "weave_commit": {
-        "weight": 0.18,
-        "stages": [
-          {
-            "name": "close_in_with_weave",
-            "duration_range": [22.0, 34.0],
-            "vr_cmd": {"reference": "v_cruise", "base_range": [-0.7, -0.45]},
-            "vt_cmd": {"reference": "v_cruise", "base_range": [0.0, 0.12], "amplitude_range": [0.18, 0.36], "period_range": [10.0, 20.0]},
-            "vz_cmd": {"reference": "absolute", "base_range": [-0.4, 0.4]},
-            "yaw_mode": "course_locked",
-            "noise_profile": "attack_weave",
-            "flight_mode": "cruise"
+        },
+        "continuous_pressure": {
+          "weight": 0.28,
+          "maneuvers": {
+            "direct": {
+              "weight": 0.56,
+              "style_name": "continuous_pressure_direct",
+              "duration_scale": 1.38,
+              "vr_scale": 1.0,
+              "stages": [
+                {
+                  "name": "steady_press",
+                  "duration_range": [
+                    14.0,
+                    22.0
+                  ],
+                  "vr_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      -0.72,
+                      -0.54
+                    ],
+                    "amplitude_range": [
+                      0.0,
+                      0.06
+                    ]
+                  },
+                  "vt_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      -0.06,
+                      0.06
+                    ]
+                  },
+                  "vz_cmd": {
+                    "reference": "absolute",
+                    "base_range": [
+                      -0.25,
+                      0.25
+                    ]
+                  },
+                  "yaw_mode": "station_locked",
+                  "noise_profile": "attack_press",
+                  "flight_mode": "cruise"
+                },
+                {
+                  "name": "sustain_press",
+                  "duration_range": [
+                    16.0,
+                    24.0
+                  ],
+                  "vr_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      -0.68,
+                      -0.5
+                    ],
+                    "amplitude_range": [
+                      0.0,
+                      0.05
+                    ]
+                  },
+                  "vt_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      -0.05,
+                      0.05
+                    ]
+                  },
+                  "vz_cmd": {
+                    "reference": "absolute",
+                    "base_range": [
+                      -0.2,
+                      0.2
+                    ]
+                  },
+                  "yaw_mode": "station_locked",
+                  "noise_profile": "attack_press",
+                  "flight_mode": "cruise"
+                }
+              ]
+            },
+            "weave": {
+              "weight": 0.44,
+              "style_name": "continuous_pressure_weave",
+              "duration_scale": 1.44,
+              "vr_scale": 1.0,
+              "stages": [
+                {
+                  "name": "steady_press_with_weave",
+                  "duration_range": [
+                    14.0,
+                    22.0
+                  ],
+                  "vr_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      -0.68,
+                      -0.5
+                    ]
+                  },
+                  "vt_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      0.04,
+                      0.14
+                    ],
+                    "amplitude_range": [
+                      0.16,
+                      0.28
+                    ],
+                    "period_range": [
+                      9.0,
+                      16.0
+                    ]
+                  },
+                  "vz_cmd": {
+                    "reference": "absolute",
+                    "base_range": [
+                      -0.25,
+                      0.25
+                    ]
+                  },
+                  "yaw_mode": "station_locked",
+                  "noise_profile": "attack_press_weave",
+                  "flight_mode": "cruise"
+                },
+                {
+                  "name": "sustain_press_with_weave",
+                  "duration_range": [
+                    14.0,
+                    22.0
+                  ],
+                  "vr_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      -0.64,
+                      -0.46
+                    ]
+                  },
+                  "vt_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      0.02,
+                      0.12
+                    ],
+                    "amplitude_range": [
+                      0.14,
+                      0.24
+                    ],
+                    "period_range": [
+                      8.0,
+                      14.0
+                    ]
+                  },
+                  "vz_cmd": {
+                    "reference": "absolute",
+                    "base_range": [
+                      -0.2,
+                      0.2
+                    ]
+                  },
+                  "yaw_mode": "station_scan",
+                  "noise_profile": "attack_press_weave",
+                  "flight_mode": "cruise"
+                }
+              ]
+            }
           },
-          {
-            "name": "terminal_commit",
-            "duration_range": [10.0, 16.0],
-            "vr_cmd": {"reference": "v_dash", "base_range": [-0.92, -0.75]},
-            "vt_cmd": {"reference": "v_cruise", "base_range": [-0.08, 0.08], "envelope": "ramp_down"},
-            "vz_cmd": {"reference": "absolute", "base_range": [-0.3, 0.3]},
-            "yaw_mode": "station_facing",
-            "noise_profile": "attack_terminal",
-            "flight_mode": "cruise"
+          "start_context_weights": {
+            "hold_ready": 0.45,
+            "loiter_ready": 0.35,
+            "outer_direct": 0.2
           }
-        ]
-      },
-      "climb_dive_commit": {
-        "weight": 0.16,
-        "stages": [
-          {
-            "name": "climb_close",
-            "duration_range": [18.0, 26.0],
-            "vr_cmd": {"reference": "v_cruise", "base_range": [-0.65, -0.45]},
-            "vt_cmd": {"reference": "v_cruise", "base_range": [-0.08, 0.08]},
-            "vz_cmd": {"reference": "absolute", "base_range": [1.2, 2.4]},
-            "yaw_mode": "course_locked",
-            "noise_profile": "attack_climb",
-            "flight_mode": "cruise"
+        },
+        "staged_commit": {
+          "weight": 0.35,
+          "maneuvers": {
+            "direct": {
+              "weight": 0.28,
+              "style_name": "staged_commit_direct",
+              "duration_scale": 1.6,
+              "vr_scale": 1.08,
+              "stages": [
+                {
+                  "name": "close_in",
+                  "duration_range": [
+                    18.0,
+                    28.0
+                  ],
+                  "vr_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      -0.28,
+                      -0.14
+                    ],
+                    "amplitude_range": [
+                      0.0,
+                      0.08
+                    ],
+                    "period_range": [
+                      12.0,
+                      22.0
+                    ],
+                    "envelope": "ramp_up"
+                  },
+                  "vt_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      0.12,
+                      0.24
+                    ]
+                  },
+                  "vz_cmd": {
+                    "reference": "absolute",
+                    "base_range": [
+                      -0.3,
+                      0.3
+                    ]
+                  },
+                  "yaw_mode": "lead_station",
+                  "noise_profile": "attack_direct",
+                  "flight_mode": "cruise"
+                },
+                {
+                  "name": "terminal_commit",
+                  "duration_range": [
+                    10.0,
+                    18.0
+                  ],
+                  "vr_cmd": {
+                    "reference": "v_dash",
+                    "base_range": [
+                      -0.95,
+                      -0.75
+                    ],
+                    "amplitude_range": [
+                      0.0,
+                      0.05
+                    ],
+                    "envelope": "ramp_up"
+                  },
+                  "vt_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      -0.05,
+                      0.05
+                    ]
+                  },
+                  "vz_cmd": {
+                    "reference": "absolute",
+                    "base_range": [
+                      -0.2,
+                      0.2
+                    ]
+                  },
+                  "yaw_mode": "station_locked",
+                  "noise_profile": "attack_terminal",
+                  "flight_mode": "cruise"
+                }
+              ]
+            },
+            "weave": {
+              "weight": 0.24,
+              "style_name": "staged_commit_weave",
+              "duration_scale": 1.62,
+              "vr_scale": 1.06,
+              "stages": [
+                {
+                  "name": "close_in_with_weave",
+                  "duration_range": [
+                    22.0,
+                    34.0
+                  ],
+                  "vr_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      -0.3,
+                      -0.18
+                    ]
+                  },
+                  "vt_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      0.14,
+                      0.24
+                    ],
+                    "amplitude_range": [
+                      0.18,
+                      0.36
+                    ],
+                    "period_range": [
+                      10.0,
+                      20.0
+                    ]
+                  },
+                  "vz_cmd": {
+                    "reference": "absolute",
+                    "base_range": [
+                      -0.4,
+                      0.4
+                    ]
+                  },
+                  "yaw_mode": "lead_station",
+                  "noise_profile": "attack_weave",
+                  "flight_mode": "cruise"
+                },
+                {
+                  "name": "terminal_commit",
+                  "duration_range": [
+                    10.0,
+                    16.0
+                  ],
+                  "vr_cmd": {
+                    "reference": "v_dash",
+                    "base_range": [
+                      -0.92,
+                      -0.75
+                    ]
+                  },
+                  "vt_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      -0.08,
+                      0.08
+                    ],
+                    "envelope": "ramp_down"
+                  },
+                  "vz_cmd": {
+                    "reference": "absolute",
+                    "base_range": [
+                      -0.3,
+                      0.3
+                    ]
+                  },
+                  "yaw_mode": "station_locked",
+                  "noise_profile": "attack_terminal",
+                  "flight_mode": "cruise"
+                }
+              ]
+            },
+            "climb_dive": {
+              "weight": 0.2,
+              "style_name": "staged_commit_climb_dive",
+              "duration_scale": 1.55,
+              "vr_scale": 1.05,
+              "stages": [
+                {
+                  "name": "climb_close",
+                  "duration_range": [
+                    18.0,
+                    26.0
+                  ],
+                  "vr_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      -0.3,
+                      -0.18
+                    ]
+                  },
+                  "vt_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      0.05,
+                      0.14
+                    ]
+                  },
+                  "vz_cmd": {
+                    "reference": "absolute",
+                    "base_range": [
+                      1.2,
+                      2.4
+                    ]
+                  },
+                  "yaw_mode": "lead_station",
+                  "noise_profile": "attack_climb",
+                  "flight_mode": "cruise"
+                },
+                {
+                  "name": "dive_commit",
+                  "duration_range": [
+                    12.0,
+                    18.0
+                  ],
+                  "vr_cmd": {
+                    "reference": "v_dash",
+                    "base_range": [
+                      -0.95,
+                      -0.78
+                    ]
+                  },
+                  "vt_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      -0.06,
+                      0.06
+                    ]
+                  },
+                  "vz_cmd": {
+                    "reference": "absolute",
+                    "base_range": [
+                      -2.2,
+                      -1.1
+                    ]
+                  },
+                  "yaw_mode": "course_locked",
+                  "noise_profile": "attack_dive",
+                  "flight_mode": "cruise"
+                }
+              ]
+            },
+            "dogleg": {
+              "weight": 0.12,
+              "style_name": "staged_commit_dogleg",
+              "duration_scale": 1.5,
+              "vr_scale": 1.04,
+              "stages": [
+                {
+                  "name": "offset_turn",
+                  "duration_range": [
+                    16.0,
+                    24.0
+                  ],
+                  "vr_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      -0.22,
+                      -0.12
+                    ]
+                  },
+                  "vt_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      0.32,
+                      0.55
+                    ]
+                  },
+                  "vz_cmd": {
+                    "reference": "absolute",
+                    "base_range": [
+                      -0.2,
+                      0.4
+                    ]
+                  },
+                  "yaw_mode": "lead_station",
+                  "noise_profile": "attack_turn",
+                  "flight_mode": "cruise"
+                },
+                {
+                  "name": "recommit_dive",
+                  "duration_range": [
+                    10.0,
+                    16.0
+                  ],
+                  "vr_cmd": {
+                    "reference": "v_dash",
+                    "base_range": [
+                      -0.9,
+                      -0.72
+                    ]
+                  },
+                  "vt_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      0.08,
+                      0.18
+                    ],
+                    "envelope": "ramp_down"
+                  },
+                  "vz_cmd": {
+                    "reference": "absolute",
+                    "base_range": [
+                      -1.8,
+                      -0.8
+                    ]
+                  },
+                  "yaw_mode": "course_locked",
+                  "noise_profile": "attack_recommit",
+                  "flight_mode": "cruise"
+                }
+              ]
+            },
+            "zigzag": {
+              "weight": 0.16,
+              "style_name": "staged_commit_zigzag",
+              "duration_scale": 1.58,
+              "vr_scale": 1.05,
+              "stages": [
+                {
+                  "name": "close_in",
+                  "duration_range": [
+                    14.0,
+                    20.0
+                  ],
+                  "vr_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      -0.28,
+                      -0.16
+                    ]
+                  },
+                  "vt_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      0.26,
+                      0.4
+                    ],
+                    "amplitude_range": [
+                      0.18,
+                      0.28
+                    ],
+                    "period_range": [
+                      6.0,
+                      10.0
+                    ]
+                  },
+                  "vz_cmd": {
+                    "reference": "absolute",
+                    "base_range": [
+                      -0.2,
+                      0.2
+                    ]
+                  },
+                  "yaw_mode": "course_locked",
+                  "noise_profile": "attack_zigzag",
+                  "flight_mode": "cruise"
+                },
+                {
+                  "name": "terminal_commit",
+                  "duration_range": [
+                    10.0,
+                    16.0
+                  ],
+                  "vr_cmd": {
+                    "reference": "v_dash",
+                    "base_range": [
+                      -0.92,
+                      -0.76
+                    ]
+                  },
+                  "vt_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      0.0,
+                      0.15
+                    ],
+                    "amplitude_range": [
+                      0.12,
+                      0.2
+                    ],
+                    "period_range": [
+                      4.0,
+                      8.0
+                    ],
+                    "envelope": "ramp_down"
+                  },
+                  "vz_cmd": {
+                    "reference": "absolute",
+                    "base_range": [
+                      -0.2,
+                      0.2
+                    ]
+                  },
+                  "yaw_mode": "station_locked",
+                  "noise_profile": "attack_terminal",
+                  "flight_mode": "cruise"
+                }
+              ]
+            }
           },
-          {
-            "name": "dive_commit",
-            "duration_range": [12.0, 18.0],
-            "vr_cmd": {"reference": "v_dash", "base_range": [-0.95, -0.78]},
-            "vt_cmd": {"reference": "v_cruise", "base_range": [-0.06, 0.06]},
-            "vz_cmd": {"reference": "absolute", "base_range": [-2.2, -1.1]},
-            "yaw_mode": "course_locked",
-            "noise_profile": "attack_dive",
-            "flight_mode": "cruise"
+          "start_context_weights": {
+            "outer_direct": 0.85,
+            "hold_ready": 0.15
           }
-        ]
-      },
-      "turn_dive_commit": {
-        "weight": 0.14,
-        "stages": [
-          {
-            "name": "offset_turn",
-            "duration_range": [16.0, 24.0],
-            "vr_cmd": {"reference": "v_cruise", "base_range": [-0.45, -0.25]},
-            "vt_cmd": {"reference": "v_cruise", "base_range": [0.32, 0.55]},
-            "vz_cmd": {"reference": "absolute", "base_range": [-0.2, 0.4]},
-            "yaw_mode": "decoupled",
-            "noise_profile": "attack_turn",
-            "flight_mode": "cruise"
+        },
+        "probe_commit": {
+          "weight": 0.15,
+          "maneuvers": {
+            "direct": {
+              "weight": 1.0,
+              "style_name": "probe_commit_direct",
+              "duration_scale": 1.42,
+              "vr_scale": 1.03,
+              "stages": [
+                {
+                  "name": "probe_close",
+                  "duration_range": [
+                    10.0,
+                    16.0
+                  ],
+                  "vr_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      -0.3,
+                      -0.18
+                    ]
+                  },
+                  "vt_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      0.18,
+                      0.28
+                    ]
+                  },
+                  "vz_cmd": {
+                    "reference": "absolute",
+                    "base_range": [
+                      -0.2,
+                      0.2
+                    ]
+                  },
+                  "yaw_mode": "station_scan",
+                  "noise_profile": "attack_probe",
+                  "flight_mode": "cruise"
+                },
+                {
+                  "name": "abort_offset",
+                  "duration_range": [
+                    8.0,
+                    12.0
+                  ],
+                  "vr_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      0.22,
+                      0.42
+                    ]
+                  },
+                  "vt_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      0.26,
+                      0.45
+                    ]
+                  },
+                  "vz_cmd": {
+                    "reference": "absolute",
+                    "base_range": [
+                      -0.2,
+                      0.3
+                    ]
+                  },
+                  "yaw_mode": "station_scan",
+                  "noise_profile": "attack_abort",
+                  "flight_mode": "cruise"
+                },
+                {
+                  "name": "recommit",
+                  "duration_range": [
+                    10.0,
+                    16.0
+                  ],
+                  "vr_cmd": {
+                    "reference": "v_dash",
+                    "base_range": [
+                      -0.88,
+                      -0.72
+                    ]
+                  },
+                  "vt_cmd": {
+                    "reference": "v_cruise",
+                    "base_range": [
+                      -0.08,
+                      0.12
+                    ]
+                  },
+                  "vz_cmd": {
+                    "reference": "absolute",
+                    "base_range": [
+                      -0.3,
+                      0.3
+                    ]
+                  },
+                  "yaw_mode": "station_locked",
+                  "noise_profile": "attack_recommit",
+                  "flight_mode": "cruise"
+                }
+              ]
+            }
           },
-          {
-            "name": "recommit_dive",
-            "duration_range": [10.0, 16.0],
-            "vr_cmd": {"reference": "v_dash", "base_range": [-0.9, -0.72]},
-            "vt_cmd": {"reference": "v_cruise", "base_range": [0.08, 0.18], "envelope": "ramp_down"},
-            "vz_cmd": {"reference": "absolute", "base_range": [-1.8, -0.8]},
-            "yaw_mode": "course_locked",
-            "noise_profile": "attack_recommit",
-            "flight_mode": "cruise"
+          "start_context_weights": {
+            "outer_direct": 0.55,
+            "hold_ready": 0.25,
+            "loiter_ready": 0.2
           }
-        ]
+        }
       },
-      "zigzag_commit": {
-        "weight": 0.16,
-        "stages": [
+      "legacy_styles": {
+        "direct_commit": {
+          "pressure_profile": "staged_commit",
+          "maneuver_profile": "direct",
+          "style_name": "staged_commit_direct"
+        },
+        "weave_commit": {
+          "pressure_profile": "staged_commit",
+          "maneuver_profile": "weave",
+          "style_name": "staged_commit_weave"
+        },
+        "climb_dive_commit": {
+          "pressure_profile": "staged_commit",
+          "maneuver_profile": "climb_dive",
+          "style_name": "staged_commit_climb_dive"
+        },
+        "turn_dive_commit": {
+          "pressure_profile": "staged_commit",
+          "maneuver_profile": "dogleg",
+          "style_name": "staged_commit_dogleg"
+        },
+        "zigzag_commit": {
+          "pressure_profile": "staged_commit",
+          "maneuver_profile": "zigzag",
+          "style_name": "staged_commit_zigzag"
+        },
+        "probe_recommit": {
+          "pressure_profile": "probe_commit",
+          "maneuver_profile": "direct",
+          "style_name": "probe_commit_direct"
+        }
+      },
+      "start_context_primitives": {
+        "hold_ready": [
           {
-            "name": "close_in",
-            "duration_range": [14.0, 20.0],
-            "vr_cmd": {"reference": "v_cruise", "base_range": [-0.6, -0.42]},
-            "vt_cmd": {"reference": "v_cruise", "base_range": [0.24, 0.38], "amplitude_range": [0.18, 0.28], "period_range": [6.0, 10.0]},
-            "vz_cmd": {"reference": "absolute", "base_range": [-0.2, 0.2]},
-            "yaw_mode": "course_locked",
-            "noise_profile": "attack_zigzag",
-            "flight_mode": "cruise"
-          },
-          {
-            "name": "terminal_commit",
-            "duration_range": [10.0, 16.0],
-            "vr_cmd": {"reference": "v_dash", "base_range": [-0.92, -0.76]},
-            "vt_cmd": {"reference": "v_cruise", "base_range": [0.0, 0.15], "amplitude_range": [0.12, 0.2], "period_range": [4.0, 8.0], "envelope": "ramp_down"},
-            "vz_cmd": {"reference": "absolute", "base_range": [-0.2, 0.2]},
-            "yaw_mode": "station_facing",
-            "noise_profile": "attack_terminal",
-            "flight_mode": "cruise"
+            "name": "hold_break",
+            "duration_range": [
+              4.0,
+              8.0
+            ],
+            "vr_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                -0.28,
+                -0.12
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                -0.05,
+                0.05
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.15,
+                0.15
+              ]
+            },
+            "yaw_mode": "station_locked",
+            "noise_profile": "attack_break",
+            "flight_mode": "hover"
           }
-        ]
-      },
-      "probe_recommit": {
-        "weight": 0.18,
-        "stages": [
+        ],
+        "loiter_ready": [
           {
-            "name": "probe_close",
-            "duration_range": [10.0, 16.0],
-            "vr_cmd": {"reference": "v_cruise", "base_range": [-0.7, -0.5]},
-            "vt_cmd": {"reference": "v_cruise", "base_range": [0.0, 0.12]},
-            "vz_cmd": {"reference": "absolute", "base_range": [-0.2, 0.2]},
-            "yaw_mode": "station_facing",
-            "noise_profile": "attack_probe",
-            "flight_mode": "cruise"
-          },
-          {
-            "name": "abort_offset",
-            "duration_range": [8.0, 12.0],
-            "vr_cmd": {"reference": "v_cruise", "base_range": [0.22, 0.42]},
-            "vt_cmd": {"reference": "v_cruise", "base_range": [0.26, 0.45]},
-            "vz_cmd": {"reference": "absolute", "base_range": [-0.2, 0.3]},
+            "name": "loiter_break",
+            "duration_range": [
+              5.0,
+              9.0
+            ],
+            "vr_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                -0.32,
+                -0.16
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.12,
+                0.24
+              ],
+              "envelope": "ramp_down"
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.15,
+                0.15
+              ]
+            },
             "yaw_mode": "station_scan",
-            "noise_profile": "attack_abort",
-            "flight_mode": "cruise"
-          },
-          {
-            "name": "recommit",
-            "duration_range": [8.0, 12.0],
-            "vr_cmd": {"reference": "v_dash", "base_range": [-0.88, -0.7]},
-            "vt_cmd": {"reference": "v_cruise", "base_range": [-0.08, 0.12]},
-            "vz_cmd": {"reference": "absolute", "base_range": [-0.3, 0.3]},
-            "yaw_mode": "station_facing",
-            "noise_profile": "attack_recommit",
-            "flight_mode": "cruise"
-          },
-          {
-            "name": "terminal_commit",
-            "duration_range": [8.0, 12.0],
-            "vr_cmd": {"reference": "v_dash", "base_range": [-0.95, -0.82]},
-            "vt_cmd": {"reference": "v_cruise", "base_range": [-0.05, 0.05]},
-            "vz_cmd": {"reference": "absolute", "base_range": [-0.2, 0.2]},
-            "yaw_mode": "course_locked",
-            "noise_profile": "attack_terminal",
+            "noise_profile": "attack_break",
             "flight_mode": "cruise"
           }
-        ]
+        ],
+        "near_static": [],
+        "outer_direct": []
       }
     },
     "retreat": {
       "direct_breakaway": {
         "weight": 0.32,
         "stages": [
-          {"name": "breakaway", "duration_range": [16.0, 24.0], "vr_cmd": {"reference": "v_cruise", "base_range": [0.55, 0.8]}, "vt_cmd": {"reference": "v_cruise", "base_range": [-0.06, 0.06]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.2, 0.2]}, "yaw_mode": "course_locked", "noise_profile": "retreat_direct", "flight_mode": "cruise"},
-          {"name": "extend_out", "duration_range": [18.0, 26.0], "vr_cmd": {"reference": "v_dash", "base_range": [0.7, 0.92]}, "vt_cmd": {"reference": "v_cruise", "base_range": [-0.08, 0.08]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.2, 0.2]}, "yaw_mode": "course_locked", "noise_profile": "retreat_extend", "flight_mode": "cruise"}
+          {
+            "name": "breakaway",
+            "duration_range": [
+              16.0,
+              24.0
+            ],
+            "vr_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.55,
+                0.8
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                -0.06,
+                0.06
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.2,
+                0.2
+              ]
+            },
+            "yaw_mode": "course_locked",
+            "noise_profile": "retreat_direct",
+            "flight_mode": "cruise"
+          },
+          {
+            "name": "extend_out",
+            "duration_range": [
+              18.0,
+              26.0
+            ],
+            "vr_cmd": {
+              "reference": "v_dash",
+              "base_range": [
+                0.7,
+                0.92
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                -0.08,
+                0.08
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.2,
+                0.2
+              ]
+            },
+            "yaw_mode": "course_locked",
+            "noise_profile": "retreat_extend",
+            "flight_mode": "cruise"
+          }
         ]
       },
       "arc_breakaway": {
         "weight": 0.24,
         "stages": [
-          {"name": "breakaway_with_arc", "duration_range": [18.0, 26.0], "vr_cmd": {"reference": "v_cruise", "base_range": [0.5, 0.7]}, "vt_cmd": {"reference": "v_cruise", "base_range": [0.18, 0.34]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.2, 0.2]}, "yaw_mode": "course_locked", "noise_profile": "retreat_arc", "flight_mode": "cruise"},
-          {"name": "extend_out", "duration_range": [18.0, 24.0], "vr_cmd": {"reference": "v_dash", "base_range": [0.72, 0.9]}, "vt_cmd": {"reference": "v_cruise", "base_range": [0.12, 0.22]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.2, 0.2]}, "yaw_mode": "course_locked", "noise_profile": "retreat_extend", "flight_mode": "cruise"}
+          {
+            "name": "breakaway_with_arc",
+            "duration_range": [
+              18.0,
+              26.0
+            ],
+            "vr_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.5,
+                0.7
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.18,
+                0.34
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.2,
+                0.2
+              ]
+            },
+            "yaw_mode": "course_locked",
+            "noise_profile": "retreat_arc",
+            "flight_mode": "cruise"
+          },
+          {
+            "name": "extend_out",
+            "duration_range": [
+              18.0,
+              24.0
+            ],
+            "vr_cmd": {
+              "reference": "v_dash",
+              "base_range": [
+                0.72,
+                0.9
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.12,
+                0.22
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.2,
+                0.2
+              ]
+            },
+            "yaw_mode": "course_locked",
+            "noise_profile": "retreat_extend",
+            "flight_mode": "cruise"
+          }
         ]
       },
       "zigzag_breakaway": {
         "weight": 0.22,
         "stages": [
-          {"name": "breakaway", "duration_range": [14.0, 20.0], "vr_cmd": {"reference": "v_cruise", "base_range": [0.52, 0.7]}, "vt_cmd": {"reference": "v_cruise", "base_range": [0.18, 0.28], "amplitude_range": [0.12, 0.22], "period_range": [5.0, 9.0]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.2, 0.2]}, "yaw_mode": "course_locked", "noise_profile": "retreat_zigzag", "flight_mode": "cruise"},
-          {"name": "zigzag_extend", "duration_range": [18.0, 24.0], "vr_cmd": {"reference": "v_dash", "base_range": [0.72, 0.9]}, "vt_cmd": {"reference": "v_cruise", "base_range": [0.12, 0.22], "amplitude_range": [0.1, 0.18], "period_range": [4.0, 7.0]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.2, 0.2]}, "yaw_mode": "course_locked", "noise_profile": "retreat_extend", "flight_mode": "cruise"}
+          {
+            "name": "breakaway",
+            "duration_range": [
+              14.0,
+              20.0
+            ],
+            "vr_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.52,
+                0.7
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.18,
+                0.28
+              ],
+              "amplitude_range": [
+                0.12,
+                0.22
+              ],
+              "period_range": [
+                5.0,
+                9.0
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.2,
+                0.2
+              ]
+            },
+            "yaw_mode": "course_locked",
+            "noise_profile": "retreat_zigzag",
+            "flight_mode": "cruise"
+          },
+          {
+            "name": "zigzag_extend",
+            "duration_range": [
+              18.0,
+              24.0
+            ],
+            "vr_cmd": {
+              "reference": "v_dash",
+              "base_range": [
+                0.72,
+                0.9
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.12,
+                0.22
+              ],
+              "amplitude_range": [
+                0.1,
+                0.18
+              ],
+              "period_range": [
+                4.0,
+                7.0
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.2,
+                0.2
+              ]
+            },
+            "yaw_mode": "course_locked",
+            "noise_profile": "retreat_extend",
+            "flight_mode": "cruise"
+          }
         ]
       },
       "climb_breakaway": {
         "weight": 0.22,
         "stages": [
-          {"name": "breakaway", "duration_range": [16.0, 22.0], "vr_cmd": {"reference": "v_cruise", "base_range": [0.55, 0.72]}, "vt_cmd": {"reference": "v_cruise", "base_range": [-0.05, 0.08]}, "vz_cmd": {"reference": "absolute", "base_range": [0.9, 1.8]}, "yaw_mode": "course_locked", "noise_profile": "retreat_climb", "flight_mode": "cruise"},
-          {"name": "climb_extend", "duration_range": [16.0, 22.0], "vr_cmd": {"reference": "v_dash", "base_range": [0.72, 0.88]}, "vt_cmd": {"reference": "v_cruise", "base_range": [-0.05, 0.08]}, "vz_cmd": {"reference": "absolute", "base_range": [0.6, 1.3]}, "yaw_mode": "course_locked", "noise_profile": "retreat_extend", "flight_mode": "cruise"}
+          {
+            "name": "breakaway",
+            "duration_range": [
+              16.0,
+              22.0
+            ],
+            "vr_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.55,
+                0.72
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                -0.05,
+                0.08
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                0.9,
+                1.8
+              ]
+            },
+            "yaw_mode": "course_locked",
+            "noise_profile": "retreat_climb",
+            "flight_mode": "cruise"
+          },
+          {
+            "name": "climb_extend",
+            "duration_range": [
+              16.0,
+              22.0
+            ],
+            "vr_cmd": {
+              "reference": "v_dash",
+              "base_range": [
+                0.72,
+                0.88
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                -0.05,
+                0.08
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                0.6,
+                1.3
+              ]
+            },
+            "yaw_mode": "course_locked",
+            "noise_profile": "retreat_extend",
+            "flight_mode": "cruise"
+          }
         ]
       }
     },
@@ -206,29 +1170,357 @@
       "true_hover": {
         "weight": 0.35,
         "stages": [
-          {"name": "settle_to_band", "duration_range": [10.0, 16.0], "vr_cmd": {"reference": "hold_width", "base_range": [-0.02, 0.02], "amplitude_range": [0.03, 0.06], "period_range": [14.0, 24.0]}, "vt_cmd": {"reference": "v_cruise", "base_range": [-0.05, 0.05]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.2, 0.2]}, "yaw_mode": "station_facing", "noise_profile": "hover_settle", "flight_mode": "hover"},
-          {"name": "hover_hold", "duration_range": [36.0, 54.0], "vr_cmd": {"reference": "hold_width", "base_range": [0.0, 0.0], "amplitude_range": [0.01, 0.03], "period_range": [16.0, 28.0]}, "vt_cmd": {"reference": "v_cruise", "base_range": [-0.03, 0.03]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.15, 0.15]}, "yaw_mode": "station_scan", "noise_profile": "hover_hold", "flight_mode": "hover"}
+          {
+            "name": "settle_to_band",
+            "duration_range": [
+              10.0,
+              16.0
+            ],
+            "vr_cmd": {
+              "reference": "hold_width",
+              "base_range": [
+                -0.02,
+                0.02
+              ],
+              "amplitude_range": [
+                0.03,
+                0.06
+              ],
+              "period_range": [
+                14.0,
+                24.0
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                -0.05,
+                0.05
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.2,
+                0.2
+              ]
+            },
+            "yaw_mode": "station_facing",
+            "noise_profile": "hover_settle",
+            "flight_mode": "hover"
+          },
+          {
+            "name": "hover_hold",
+            "duration_range": [
+              36.0,
+              54.0
+            ],
+            "vr_cmd": {
+              "reference": "hold_width",
+              "base_range": [
+                0.0,
+                0.0
+              ],
+              "amplitude_range": [
+                0.01,
+                0.03
+              ],
+              "period_range": [
+                16.0,
+                28.0
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                -0.03,
+                0.03
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.15,
+                0.15
+              ]
+            },
+            "yaw_mode": "station_scan",
+            "noise_profile": "hover_hold",
+            "flight_mode": "hover"
+          }
         ]
       },
       "drift_hold": {
         "weight": 0.35,
         "stages": [
-          {"name": "settle_to_band", "duration_range": [12.0, 18.0], "vr_cmd": {"reference": "hold_width", "base_range": [-0.03, 0.03], "amplitude_range": [0.03, 0.06], "period_range": [14.0, 22.0]}, "vt_cmd": {"reference": "v_cruise", "base_range": [0.02, 0.08], "amplitude_range": [0.04, 0.09], "period_range": [18.0, 28.0]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.2, 0.2]}, "yaw_mode": "station_scan", "noise_profile": "hover_drift", "flight_mode": "hover"},
-          {"name": "drift_hold", "duration_range": [34.0, 52.0], "vr_cmd": {"reference": "hold_width", "base_range": [0.0, 0.0], "amplitude_range": [0.02, 0.05], "period_range": [16.0, 24.0]}, "vt_cmd": {"reference": "v_cruise", "base_range": [0.04, 0.1], "amplitude_range": [0.03, 0.08], "period_range": [18.0, 30.0]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.15, 0.15]}, "yaw_mode": "station_facing", "noise_profile": "hover_hold", "flight_mode": "hover"}
+          {
+            "name": "settle_to_band",
+            "duration_range": [
+              12.0,
+              18.0
+            ],
+            "vr_cmd": {
+              "reference": "hold_width",
+              "base_range": [
+                -0.03,
+                0.03
+              ],
+              "amplitude_range": [
+                0.03,
+                0.06
+              ],
+              "period_range": [
+                14.0,
+                22.0
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.02,
+                0.08
+              ],
+              "amplitude_range": [
+                0.04,
+                0.09
+              ],
+              "period_range": [
+                18.0,
+                28.0
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.2,
+                0.2
+              ]
+            },
+            "yaw_mode": "station_scan",
+            "noise_profile": "hover_drift",
+            "flight_mode": "hover"
+          },
+          {
+            "name": "drift_hold",
+            "duration_range": [
+              34.0,
+              52.0
+            ],
+            "vr_cmd": {
+              "reference": "hold_width",
+              "base_range": [
+                0.0,
+                0.0
+              ],
+              "amplitude_range": [
+                0.02,
+                0.05
+              ],
+              "period_range": [
+                16.0,
+                24.0
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.04,
+                0.1
+              ],
+              "amplitude_range": [
+                0.03,
+                0.08
+              ],
+              "period_range": [
+                18.0,
+                30.0
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.15,
+                0.15
+              ]
+            },
+            "yaw_mode": "station_facing",
+            "noise_profile": "hover_hold",
+            "flight_mode": "hover"
+          }
         ]
       },
       "corridor_hold": {
         "weight": 0.15,
         "stages": [
-          {"name": "enter_hold_corridor", "duration_range": [12.0, 18.0], "vr_cmd": {"reference": "v_cruise", "base_range": [-0.18, 0.12]}, "vt_cmd": {"reference": "v_cruise", "base_range": [0.18, 0.3], "amplitude_range": [0.06, 0.12], "period_range": [10.0, 18.0]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.2, 0.2]}, "yaw_mode": "station_facing", "noise_profile": "hover_corridor", "flight_mode": "cruise"},
-          {"name": "back_and_forth_hold", "duration_range": [32.0, 48.0], "vr_cmd": {"reference": "hold_width", "base_range": [0.0, 0.0], "amplitude_range": [0.04, 0.08], "period_range": [18.0, 28.0]}, "vt_cmd": {"reference": "v_cruise", "base_range": [0.22, 0.36], "amplitude_range": [0.08, 0.16], "period_range": [12.0, 20.0]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.15, 0.15]}, "yaw_mode": "station_scan", "noise_profile": "hover_corridor", "flight_mode": "cruise"}
+          {
+            "name": "enter_hold_corridor",
+            "duration_range": [
+              12.0,
+              18.0
+            ],
+            "vr_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                -0.18,
+                0.12
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.18,
+                0.3
+              ],
+              "amplitude_range": [
+                0.06,
+                0.12
+              ],
+              "period_range": [
+                10.0,
+                18.0
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.2,
+                0.2
+              ]
+            },
+            "yaw_mode": "station_facing",
+            "noise_profile": "hover_corridor",
+            "flight_mode": "cruise"
+          },
+          {
+            "name": "back_and_forth_hold",
+            "duration_range": [
+              32.0,
+              48.0
+            ],
+            "vr_cmd": {
+              "reference": "hold_width",
+              "base_range": [
+                0.0,
+                0.0
+              ],
+              "amplitude_range": [
+                0.04,
+                0.08
+              ],
+              "period_range": [
+                18.0,
+                28.0
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.22,
+                0.36
+              ],
+              "amplitude_range": [
+                0.08,
+                0.16
+              ],
+              "period_range": [
+                12.0,
+                20.0
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.15,
+                0.15
+              ]
+            },
+            "yaw_mode": "station_scan",
+            "noise_profile": "hover_corridor",
+            "flight_mode": "cruise"
+          }
         ]
       },
       "pseudo_hover_racetrack": {
         "weight": 0.15,
         "stages": [
-          {"name": "enter_hold_center", "duration_range": [12.0, 18.0], "vr_cmd": {"reference": "v_cruise", "base_range": [-0.12, 0.08]}, "vt_cmd": {"reference": "v_cruise", "base_range": [0.24, 0.34]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.2, 0.2]}, "yaw_mode": "course_locked", "noise_profile": "hover_racetrack", "flight_mode": "cruise"},
-          {"name": "local_racetrack_hold", "duration_range": [32.0, 46.0], "vr_cmd": {"reference": "hold_width", "base_range": [0.0, 0.0], "amplitude_range": [0.04, 0.1], "period_range": [20.0, 30.0]}, "vt_cmd": {"reference": "v_cruise", "base_range": [0.26, 0.38], "amplitude_range": [0.08, 0.14], "period_range": [10.0, 18.0]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.12, 0.12]}, "yaw_mode": "course_locked", "noise_profile": "hover_racetrack", "flight_mode": "cruise"}
+          {
+            "name": "enter_hold_center",
+            "duration_range": [
+              12.0,
+              18.0
+            ],
+            "vr_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                -0.12,
+                0.08
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.24,
+                0.34
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.2,
+                0.2
+              ]
+            },
+            "yaw_mode": "course_locked",
+            "noise_profile": "hover_racetrack",
+            "flight_mode": "cruise"
+          },
+          {
+            "name": "local_racetrack_hold",
+            "duration_range": [
+              32.0,
+              46.0
+            ],
+            "vr_cmd": {
+              "reference": "hold_width",
+              "base_range": [
+                0.0,
+                0.0
+              ],
+              "amplitude_range": [
+                0.04,
+                0.1
+              ],
+              "period_range": [
+                20.0,
+                30.0
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.26,
+                0.38
+              ],
+              "amplitude_range": [
+                0.08,
+                0.14
+              ],
+              "period_range": [
+                10.0,
+                18.0
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.12,
+                0.12
+              ]
+            },
+            "yaw_mode": "course_locked",
+            "noise_profile": "hover_racetrack",
+            "flight_mode": "cruise"
+          }
         ]
       }
     },
@@ -236,37 +1528,455 @@
       "circle_loiter": {
         "weight": 0.24,
         "stages": [
-          {"name": "enter_band", "duration_range": [12.0, 18.0], "vr_cmd": {"reference": "loiter_width", "base_range": [-0.02, 0.02], "amplitude_range": [0.03, 0.07], "period_range": [14.0, 22.0]}, "vt_cmd": {"reference": "v_cruise", "base_range": [0.35, 0.52]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.2, 0.2]}, "yaw_mode": "station_facing", "noise_profile": "loiter_enter", "flight_mode": "cruise"},
-          {"name": "orbit", "duration_range": [42.0, 62.0], "vr_cmd": {"reference": "loiter_width", "base_range": [0.0, 0.0], "amplitude_range": [0.02, 0.05], "period_range": [20.0, 30.0]}, "vt_cmd": {"reference": "v_cruise", "base_range": [0.48, 0.66]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.15, 0.15]}, "yaw_mode": "station_facing", "noise_profile": "loiter_circle", "flight_mode": "cruise"}
+          {
+            "name": "enter_band",
+            "duration_range": [
+              12.0,
+              18.0
+            ],
+            "vr_cmd": {
+              "reference": "loiter_width",
+              "base_range": [
+                -0.02,
+                0.02
+              ],
+              "amplitude_range": [
+                0.03,
+                0.07
+              ],
+              "period_range": [
+                14.0,
+                22.0
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.35,
+                0.52
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.2,
+                0.2
+              ]
+            },
+            "yaw_mode": "station_facing",
+            "noise_profile": "loiter_enter",
+            "flight_mode": "cruise"
+          },
+          {
+            "name": "orbit",
+            "duration_range": [
+              42.0,
+              62.0
+            ],
+            "vr_cmd": {
+              "reference": "loiter_width",
+              "base_range": [
+                0.0,
+                0.0
+              ],
+              "amplitude_range": [
+                0.02,
+                0.05
+              ],
+              "period_range": [
+                20.0,
+                30.0
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.48,
+                0.66
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.15,
+                0.15
+              ]
+            },
+            "yaw_mode": "station_facing",
+            "noise_profile": "loiter_circle",
+            "flight_mode": "cruise"
+          }
         ]
       },
       "ellipse_loiter": {
         "weight": 0.2,
         "stages": [
-          {"name": "enter_band", "duration_range": [12.0, 18.0], "vr_cmd": {"reference": "loiter_width", "base_range": [-0.02, 0.02], "amplitude_range": [0.04, 0.08], "period_range": [12.0, 18.0]}, "vt_cmd": {"reference": "v_cruise", "base_range": [0.34, 0.5]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.2, 0.2]}, "yaw_mode": "station_facing", "noise_profile": "loiter_enter", "flight_mode": "cruise"},
-          {"name": "ellipse_orbit", "duration_range": [40.0, 58.0], "vr_cmd": {"reference": "loiter_width", "base_range": [0.0, 0.0], "amplitude_range": [0.08, 0.16], "period_range": [18.0, 26.0]}, "vt_cmd": {"reference": "v_cruise", "base_range": [0.45, 0.62]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.15, 0.15]}, "yaw_mode": "station_scan", "noise_profile": "loiter_ellipse", "flight_mode": "cruise"}
+          {
+            "name": "enter_band",
+            "duration_range": [
+              12.0,
+              18.0
+            ],
+            "vr_cmd": {
+              "reference": "loiter_width",
+              "base_range": [
+                -0.02,
+                0.02
+              ],
+              "amplitude_range": [
+                0.04,
+                0.08
+              ],
+              "period_range": [
+                12.0,
+                18.0
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.34,
+                0.5
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.2,
+                0.2
+              ]
+            },
+            "yaw_mode": "station_facing",
+            "noise_profile": "loiter_enter",
+            "flight_mode": "cruise"
+          },
+          {
+            "name": "ellipse_orbit",
+            "duration_range": [
+              40.0,
+              58.0
+            ],
+            "vr_cmd": {
+              "reference": "loiter_width",
+              "base_range": [
+                0.0,
+                0.0
+              ],
+              "amplitude_range": [
+                0.08,
+                0.16
+              ],
+              "period_range": [
+                18.0,
+                26.0
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.45,
+                0.62
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.15,
+                0.15
+              ]
+            },
+            "yaw_mode": "station_scan",
+            "noise_profile": "loiter_ellipse",
+            "flight_mode": "cruise"
+          }
         ]
       },
       "petal_loiter": {
         "weight": 0.18,
         "stages": [
-          {"name": "enter_band", "duration_range": [10.0, 16.0], "vr_cmd": {"reference": "loiter_width", "base_range": [-0.02, 0.02], "amplitude_range": [0.04, 0.08], "period_range": [12.0, 18.0]}, "vt_cmd": {"reference": "v_cruise", "base_range": [0.38, 0.5]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.2, 0.2]}, "yaw_mode": "station_facing", "noise_profile": "loiter_enter", "flight_mode": "cruise"},
-          {"name": "petal_orbit", "duration_range": [42.0, 60.0], "vr_cmd": {"reference": "loiter_width", "base_range": [0.0, 0.0], "amplitude_range": [0.12, 0.22], "period_range": [12.0, 18.0]}, "vt_cmd": {"reference": "v_cruise", "base_range": [0.44, 0.62], "amplitude_range": [0.04, 0.12], "period_range": [10.0, 16.0]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.2, 0.2]}, "yaw_mode": "station_scan", "noise_profile": "loiter_petal", "flight_mode": "cruise"}
+          {
+            "name": "enter_band",
+            "duration_range": [
+              10.0,
+              16.0
+            ],
+            "vr_cmd": {
+              "reference": "loiter_width",
+              "base_range": [
+                -0.02,
+                0.02
+              ],
+              "amplitude_range": [
+                0.04,
+                0.08
+              ],
+              "period_range": [
+                12.0,
+                18.0
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.38,
+                0.5
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.2,
+                0.2
+              ]
+            },
+            "yaw_mode": "station_facing",
+            "noise_profile": "loiter_enter",
+            "flight_mode": "cruise"
+          },
+          {
+            "name": "petal_orbit",
+            "duration_range": [
+              42.0,
+              60.0
+            ],
+            "vr_cmd": {
+              "reference": "loiter_width",
+              "base_range": [
+                0.0,
+                0.0
+              ],
+              "amplitude_range": [
+                0.12,
+                0.22
+              ],
+              "period_range": [
+                12.0,
+                18.0
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.44,
+                0.62
+              ],
+              "amplitude_range": [
+                0.04,
+                0.12
+              ],
+              "period_range": [
+                10.0,
+                16.0
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.2,
+                0.2
+              ]
+            },
+            "yaw_mode": "station_scan",
+            "noise_profile": "loiter_petal",
+            "flight_mode": "cruise"
+          }
         ]
       },
       "racetrack_loiter": {
         "weight": 0.18,
         "stages": [
-          {"name": "enter_band", "duration_range": [12.0, 18.0], "vr_cmd": {"reference": "loiter_width", "base_range": [-0.02, 0.02], "amplitude_range": [0.04, 0.08], "period_range": [12.0, 18.0]}, "vt_cmd": {"reference": "v_cruise", "base_range": [0.34, 0.48]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.2, 0.2]}, "yaw_mode": "course_locked", "noise_profile": "loiter_enter", "flight_mode": "cruise"},
-          {"name": "racetrack_orbit", "duration_range": [42.0, 60.0], "vr_cmd": {"reference": "loiter_width", "base_range": [0.0, 0.0], "amplitude_range": [0.1, 0.18], "period_range": [14.0, 20.0]}, "vt_cmd": {"reference": "v_cruise", "base_range": [0.45, 0.64], "amplitude_range": [0.06, 0.12], "period_range": [9.0, 14.0]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.15, 0.15]}, "yaw_mode": "course_locked", "noise_profile": "loiter_racetrack", "flight_mode": "cruise"}
+          {
+            "name": "enter_band",
+            "duration_range": [
+              12.0,
+              18.0
+            ],
+            "vr_cmd": {
+              "reference": "loiter_width",
+              "base_range": [
+                -0.02,
+                0.02
+              ],
+              "amplitude_range": [
+                0.04,
+                0.08
+              ],
+              "period_range": [
+                12.0,
+                18.0
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.34,
+                0.48
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.2,
+                0.2
+              ]
+            },
+            "yaw_mode": "course_locked",
+            "noise_profile": "loiter_enter",
+            "flight_mode": "cruise"
+          },
+          {
+            "name": "racetrack_orbit",
+            "duration_range": [
+              42.0,
+              60.0
+            ],
+            "vr_cmd": {
+              "reference": "loiter_width",
+              "base_range": [
+                0.0,
+                0.0
+              ],
+              "amplitude_range": [
+                0.1,
+                0.18
+              ],
+              "period_range": [
+                14.0,
+                20.0
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.45,
+                0.64
+              ],
+              "amplitude_range": [
+                0.06,
+                0.12
+              ],
+              "period_range": [
+                9.0,
+                14.0
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.15,
+                0.15
+              ]
+            },
+            "yaw_mode": "course_locked",
+            "noise_profile": "loiter_racetrack",
+            "flight_mode": "cruise"
+          }
         ]
       },
       "probe_loiter": {
         "weight": 0.2,
         "stages": [
-          {"name": "orbit", "duration_range": [18.0, 26.0], "vr_cmd": {"reference": "loiter_width", "base_range": [0.0, 0.0], "amplitude_range": [0.05, 0.1], "period_range": [16.0, 24.0]}, "vt_cmd": {"reference": "v_cruise", "base_range": [0.42, 0.6]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.15, 0.15]}, "yaw_mode": "station_facing", "noise_profile": "loiter_probe", "flight_mode": "cruise"},
-          {"name": "inward_probe", "duration_range": [8.0, 12.0], "vr_cmd": {"reference": "v_cruise", "base_range": [-0.32, -0.18]}, "vt_cmd": {"reference": "v_cruise", "base_range": [0.24, 0.36]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.15, 0.15]}, "yaw_mode": "station_scan", "noise_profile": "loiter_probe", "flight_mode": "cruise"},
-          {"name": "orbit_recover", "duration_range": [18.0, 26.0], "vr_cmd": {"reference": "v_cruise", "base_range": [0.08, 0.18]}, "vt_cmd": {"reference": "v_cruise", "base_range": [0.42, 0.58]}, "vz_cmd": {"reference": "absolute", "base_range": [-0.15, 0.15]}, "yaw_mode": "station_facing", "noise_profile": "loiter_recover", "flight_mode": "cruise"}
+          {
+            "name": "orbit",
+            "duration_range": [
+              18.0,
+              26.0
+            ],
+            "vr_cmd": {
+              "reference": "loiter_width",
+              "base_range": [
+                0.0,
+                0.0
+              ],
+              "amplitude_range": [
+                0.05,
+                0.1
+              ],
+              "period_range": [
+                16.0,
+                24.0
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.42,
+                0.6
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.15,
+                0.15
+              ]
+            },
+            "yaw_mode": "station_facing",
+            "noise_profile": "loiter_probe",
+            "flight_mode": "cruise"
+          },
+          {
+            "name": "inward_probe",
+            "duration_range": [
+              8.0,
+              12.0
+            ],
+            "vr_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                -0.32,
+                -0.18
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.24,
+                0.36
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.15,
+                0.15
+              ]
+            },
+            "yaw_mode": "station_scan",
+            "noise_profile": "loiter_probe",
+            "flight_mode": "cruise"
+          },
+          {
+            "name": "orbit_recover",
+            "duration_range": [
+              18.0,
+              26.0
+            ],
+            "vr_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.08,
+                0.18
+              ]
+            },
+            "vt_cmd": {
+              "reference": "v_cruise",
+              "base_range": [
+                0.42,
+                0.58
+              ]
+            },
+            "vz_cmd": {
+              "reference": "absolute",
+              "base_range": [
+                -0.15,
+                0.15
+              ]
+            },
+            "yaw_mode": "station_facing",
+            "noise_profile": "loiter_recover",
+            "flight_mode": "cruise"
+          }
         ]
       }
     }

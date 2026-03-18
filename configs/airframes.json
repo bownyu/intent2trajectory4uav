@@ -7,11 +7,11 @@
       "v_min": 0.0,
       "v_cruise_range": [
         7.0,
-        11.0
+        13.0
       ],
       "v_dash_range": [
-        10.0,
-        16.0
+        13.0,
+        25.0
       ],
       "a_long_max": 4.0,
       "a_brake_max": 4.5,
@@ -29,11 +29,14 @@
       ],
       "allowed_styles": {
         "attack": [
-          "direct_commit",
-          "weave_commit",
-          "climb_dive_commit",
-          "zigzag_commit",
-          "probe_recommit"
+          "immediate_dash_direct",
+          "continuous_pressure_direct",
+          "continuous_pressure_weave",
+          "staged_commit_direct",
+          "staged_commit_weave",
+          "staged_commit_climb_dive",
+          "staged_commit_zigzag",
+          "probe_commit_direct"
         ],
         "retreat": [
           "direct_breakaway",
@@ -52,9 +55,42 @@
           "probe_loiter"
         ]
       },
+      "attack_capability": {
+        "allowed_start_contexts": [
+          "outer_direct",
+          "hold_ready",
+          "loiter_ready",
+          "near_static"
+        ],
+        "start_context_weights": {
+          "outer_direct": 0.4,
+          "hold_ready": 0.22,
+          "loiter_ready": 0.2,
+          "near_static": 0.18
+        },
+        "allowed_pressure_profiles": [
+          "immediate_dash",
+          "continuous_pressure",
+          "staged_commit",
+          "probe_commit"
+        ],
+        "allowed_maneuvers": [
+          "direct",
+          "weave",
+          "climb_dive",
+          "zigzag"
+        ],
+        "attack_dynamics_policy": {
+          "default": "velocity_tracking",
+          "overrides": {
+            "immediate_dash:direct": "course_speed"
+          }
+        }
+      },
       "validator_overrides": {
         "c_hover_max": 0.35
-      }
+      },
+      "enabled": true
     },
     "fixed_wing_patrol": {
       "family": "fixed_wing",
@@ -85,11 +121,13 @@
       ],
       "allowed_styles": {
         "attack": [
-          "direct_commit",
-          "weave_commit",
-          "climb_dive_commit",
-          "turn_dive_commit",
-          "zigzag_commit"
+          "immediate_dash_direct",
+          "staged_commit_direct",
+          "staged_commit_weave",
+          "staged_commit_climb_dive",
+          "staged_commit_dogleg",
+          "staged_commit_zigzag",
+          "probe_commit_direct"
         ],
         "retreat": [
           "direct_breakaway",
@@ -108,9 +146,36 @@
           "probe_loiter"
         ]
       },
+      "attack_capability": {
+        "allowed_start_contexts": [
+          "outer_direct",
+          "loiter_ready"
+        ],
+        "start_context_weights": {
+          "outer_direct": 0.7,
+          "loiter_ready": 0.3
+        },
+        "allowed_pressure_profiles": [
+          "immediate_dash",
+          "staged_commit",
+          "probe_commit"
+        ],
+        "allowed_maneuvers": [
+          "direct",
+          "weave",
+          "climb_dive",
+          "dogleg",
+          "zigzag"
+        ],
+        "attack_dynamics_policy": {
+          "default": "course_speed",
+          "overrides": {}
+        }
+      },
       "validator_overrides": {
         "c_hover_max": 0.75
-      }
+      },
+      "enabled": false
     },
     "vtol_hybrid": {
       "family": "vtol",
@@ -141,11 +206,13 @@
       ],
       "allowed_styles": {
         "attack": [
-          "direct_commit",
-          "weave_commit",
-          "climb_dive_commit",
-          "turn_dive_commit",
-          "probe_recommit"
+          "immediate_dash_direct",
+          "continuous_pressure_direct",
+          "staged_commit_direct",
+          "staged_commit_weave",
+          "staged_commit_climb_dive",
+          "staged_commit_dogleg",
+          "probe_commit_direct"
         ],
         "retreat": [
           "direct_breakaway",
@@ -165,9 +232,41 @@
           "probe_loiter"
         ]
       },
+      "attack_capability": {
+        "allowed_start_contexts": [
+          "outer_direct",
+          "hold_ready",
+          "loiter_ready"
+        ],
+        "start_context_weights": {
+          "outer_direct": 0.55,
+          "hold_ready": 0.25,
+          "loiter_ready": 0.2
+        },
+        "allowed_pressure_profiles": [
+          "immediate_dash",
+          "continuous_pressure",
+          "staged_commit",
+          "probe_commit"
+        ],
+        "allowed_maneuvers": [
+          "direct",
+          "weave",
+          "climb_dive",
+          "dogleg"
+        ],
+        "attack_dynamics_policy": {
+          "default": "velocity_tracking",
+          "overrides": {
+            "immediate_dash:direct": "course_speed",
+            "immediate_dash:dogleg": "course_speed"
+          }
+        }
+      },
       "validator_overrides": {
         "c_hover_max": 0.55
-      }
+      },
+      "enabled": false
     }
   }
 }

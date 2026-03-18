@@ -1,8 +1,12 @@
 import csv
 import json
+import random
 import shutil
 from pathlib import Path
 
+import pytest
+
+from intent2trajectory.airframes.profiles import get_airframe, sample_airframe as choose_airframe
 from intent2trajectory.generator import generate_dataset, generate_sample, load_config, validate_sample
 from intent2trajectory.validators.diversity_filter import DiversityFilter
 
@@ -15,6 +19,15 @@ def _base_config(tmp_root: Path | None = None):
     return cfg
 
 
+def _clear_airframe_cache(cfg):
+    cfg.pop("_airframe_profiles", None)
+
+
+def _enable_airframe(cfg, name: str):
+    cfg["airframes"]["profiles"][name]["enabled"] = True
+    _clear_airframe_cache(cfg)
+
+
 def test_load_config_reads_split_semantic_files():
     cfg = load_config("configs/dataset_config.json")
 
@@ -24,6 +37,15 @@ def test_load_config_reads_split_semantic_files():
     assert "intent_regions" in cfg["intent_regions"]
     assert "intents" in cfg["style_library"]
     assert cfg["class_quota"]["attack"] > 0
+    assert "attack_diversity" in cfg
+
+
+def test_airframe_enabled_defaults_true_when_missing():
+    cfg = _base_config()
+    cfg["airframes"]["profiles"]["quad_small"].pop("enabled", None)
+    _clear_airframe_cache(cfg)
+
+    assert get_airframe(cfg, "quad_small").enabled is True
 
 
 def test_generate_sample_emits_new_semantic_metadata_for_all_intents():
@@ -51,21 +73,35 @@ def test_generate_sample_emits_new_semantic_metadata_for_all_intents():
         assert scores[intent] == max(scores.values())
         assert sample["metadata"]["stage_plan"]
         assert sample["metadata"]["flight_mode_sequence"]
+        if intent == "attack":
+            assert sample["metadata"]["start_context"]
+            assert sample["metadata"]["pressure_profile_target"] in {"immediate_dash", "continuous_pressure", "staged_commit", "probe_commit"}
+            assert sample["metadata"]["pressure_profile_realized"] in {"immediate_dash", "continuous_pressure", "staged_commit", "probe_commit"}
+            assert sample["metadata"]["maneuver_profile"]
+            assert sample["metadata"]["dynamics_model"] in {"course_speed", "velocity_tracking"}
+            assert sample["metadata"]["yaw_mode_sequence"]
+            assert 0.0 <= sample["metadata"]["commit_onset_ratio"] <= 1.0
+            assert 0.0 <= sample["metadata"]["terminal_spike_ratio"] <= 1.0
+        else:
+            assert sample["metadata"]["start_context"] == ""
+            assert sample["metadata"]["pressure_profile_target"] == ""
 
 
-def test_legacy_penetration_alias_maps_to_attack_direct_commit():
+def test_legacy_penetration_alias_maps_to_staged_commit_direct():
     cfg = _base_config()
-    sample = generate_sample("straight_penetration", seed=321, profile=cfg, variant_name="direct_closing")
+    sample = generate_sample("straight_penetration", seed=327, profile=cfg, variant_name="direct_closing")
     result = validate_sample(sample, cfg)
 
     assert result["valid"] is True, result["reasons"]
     assert sample["metadata"]["primary_intent"] == "attack"
-    assert sample["metadata"]["motion_style"] == "direct_commit"
+    assert sample["metadata"]["motion_style"] == "staged_commit_direct"
+    assert sample["metadata"]["pressure_profile_target"] == "staged_commit"
     assert "legacy intent 'straight_penetration' mapped to 'attack'" == sample["metadata"]["legacy_hint"]
 
 
 def test_fixed_wing_hover_and_loiter_use_supported_styles_and_validate():
     cfg = _base_config()
+    _enable_airframe(cfg, "fixed_wing_patrol")
 
     hover = generate_sample("hover", seed=401, profile=cfg, variant_name="corridor_hold", airframe_name="fixed_wing_patrol")
     loiter = generate_sample("loiter", seed=402, profile=cfg, variant_name="ellipse_loiter", airframe_name="fixed_wing_patrol")
@@ -83,13 +119,80 @@ def test_fixed_wing_hover_and_loiter_use_supported_styles_and_validate():
 
 def test_vtol_attack_validates_and_keeps_airframe_context():
     cfg = _base_config()
+    _enable_airframe(cfg, "vtol_hybrid")
     sample = generate_sample("attack", seed=510, profile=cfg, variant_name="direct_commit", airframe_name="vtol_hybrid")
     result = validate_sample(sample, cfg)
 
     assert result["valid"] is True, result["reasons"]
     assert sample["metadata"]["airframe_name"] == "vtol_hybrid"
     assert sample["metadata"]["airframe_family"] == "vtol"
-    assert sample["metadata"]["motion_style"] in cfg["airframes"]["profiles"]["vtol_hybrid"]["allowed_styles"]["attack"]
+    assert sample["metadata"]["motion_style"] == "staged_commit_direct"
+    assert sample["metadata"]["pressure_profile_target"] == "staged_commit"
+
+
+def test_quad_small_immediate_dash_uses_course_speed_override():
+    cfg = _base_config()
+    weights = cfg["airframes"]["profiles"]["quad_small"]["attack_capability"]["start_context_weights"]
+    for key in list(weights):
+        weights[key] = 0.0
+    weights["outer_direct"] = 1.0
+    _clear_airframe_cache(cfg)
+
+    sample = generate_sample("attack", seed=700, profile=cfg, variant_name="immediate_dash_direct", airframe_name="quad_small")
+    validate_sample(sample, cfg)
+
+    assert sample["metadata"]["pressure_profile_target"] == "immediate_dash"
+    assert sample["metadata"]["dynamics_model"] == "course_speed"
+    assert sample["metadata"]["dynamics_model_sequence"] == ["course_speed"]
+
+
+def test_quad_small_continuous_pressure_defaults_velocity_tracking():
+    cfg = _base_config()
+    weights = cfg["airframes"]["profiles"]["quad_small"]["attack_capability"]["start_context_weights"]
+    for key in list(weights):
+        weights[key] = 0.0
+    weights["hold_ready"] = 1.0
+    _clear_airframe_cache(cfg)
+
+    sample = generate_sample("attack", seed=701, profile=cfg, variant_name="continuous_pressure_direct", airframe_name="quad_small")
+    validate_sample(sample, cfg)
+
+    assert sample["metadata"]["pressure_profile_target"] == "continuous_pressure"
+    assert sample["metadata"]["dynamics_model"] == "velocity_tracking"
+    assert sample["metadata"]["dynamics_model_sequence"] == ["velocity_tracking"]
+
+
+def test_disabled_airframe_is_not_randomly_sampled():
+    cfg = _base_config()
+    cfg["airframes"]["profiles"]["fixed_wing_patrol"]["enabled"] = False
+    cfg["airframes"]["profiles"]["vtol_hybrid"]["enabled"] = False
+    _clear_airframe_cache(cfg)
+
+    sampled = {
+        choose_airframe("attack", cfg, random.Random(seed)).name
+        for seed in range(10)
+    }
+
+    assert sampled == {"quad_small"}
+
+
+def test_disabled_airframe_cannot_be_requested_explicitly():
+    cfg = _base_config()
+    cfg["airframes"]["profiles"]["fixed_wing_patrol"]["enabled"] = False
+    _clear_airframe_cache(cfg)
+
+    with pytest.raises(ValueError, match="disabled"):
+        generate_sample("hover", seed=401, profile=cfg, airframe_name="fixed_wing_patrol")
+
+
+def test_missing_enabled_airframes_fails_fast_for_intent():
+    cfg = _base_config()
+    for profile in cfg["airframes"]["profiles"].values():
+        profile["enabled"] = False
+    _clear_airframe_cache(cfg)
+
+    with pytest.raises(ValueError, match="No enabled airframes configured for intent 'hover'"):
+        generate_sample("hover", seed=777, profile=cfg)
 
 
 def test_diversity_filter_rejects_duplicate_candidate():
@@ -99,7 +202,7 @@ def test_diversity_filter_rejects_duplicate_candidate():
     validate_sample(first, cfg)
     validate_sample(second, cfg)
 
-    diversity = DiversityFilter(cfg["diversity"])
+    diversity = DiversityFilter(cfg)
     assert diversity.accept(first) == (True, "")
     accepted, reason = diversity.accept(second)
     assert accepted is False
@@ -132,6 +235,11 @@ def test_generate_dataset_writes_semantic_exports():
     assert all(row["intent_scores_json"] for row in metadata_rows)
     assert all(row["risk_vector_json"] for row in metadata_rows)
     assert all(row["stage_plan_json"] for row in metadata_rows)
+    attack_row = next(row for row in metadata_rows if row["primary_intent"] == "attack")
+    assert attack_row["pressure_profile_target"]
+    assert attack_row["pressure_profile_realized"]
+    assert attack_row["dynamics_model"]
+    assert attack_row["yaw_mode_sequence_json"]
 
     meta_files = list((output_root / "meta").rglob("*.json"))
     origin_files = list((output_root / "origin").rglob("*.csv"))
@@ -143,4 +251,5 @@ def test_generate_dataset_writes_semantic_exports():
 
     sample_meta = json.loads(meta_files[0].read_text(encoding="utf-8"))
     assert {"sample_id", "primary_intent", "motion_style", "airframe", "risk_vector", "intent_scores", "stage_plan"}.issubset(sample_meta)
+    assert "pressure_profile_realized" in sample_meta
 

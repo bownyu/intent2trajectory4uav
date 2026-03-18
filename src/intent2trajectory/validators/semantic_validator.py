@@ -1,13 +1,24 @@
 from __future__ import annotations
 
-from ..models import IntentScores, RiskVector, ValidationResult
+from ..models import ValidationResult
+from ..semantics.attack_profiles import classify_realized_attack_profile
 from ..semantics.intent_scoring import ambiguity_margin, score_intents
 from ..semantics.risk_vector import compute_risk_vector
 from ..semantics.station_metrics import compute_station_metrics
 from .hard_constraints import validate_hard_constraints
 
 
-def validate_sample(traj, airframe, target_intent: str, target_style: str, cfg: dict) -> ValidationResult:
+ATTACK_POSTERIOR_KEYS = (
+    "pressure_persistence",
+    "commit_onset_ratio",
+    "terminal_spike_ratio",
+    "body_point_persistence",
+    "lateral_pressure_ratio",
+    "abort_count",
+)
+
+
+def validate_sample(traj, airframe, target_intent: str, target_style: str, cfg: dict, attack_target: dict | None = None) -> ValidationResult:
     hard_report = validate_hard_constraints(traj, airframe, cfg)
     metrics = compute_station_metrics(traj, cfg["intent_regions"]["bands"], cfg, target_intent)
     risk_vector = compute_risk_vector(metrics, cfg, target_intent)
@@ -17,6 +28,8 @@ def validate_sample(traj, airframe, target_intent: str, target_style: str, cfg: 
 
     reasons = []
     category = ""
+    posterior_metrics = {key: float(metrics.get(key, 0.0)) for key in ATTACK_POSTERIOR_KEYS}
+    realized_attack_profile = ""
     if not hard_report["passed"]:
         reasons.extend([f"hard_constraint:{item}" for item in hard_report["violations"]])
         category = "hard_constraint"
@@ -33,6 +46,13 @@ def validate_sample(traj, airframe, target_intent: str, target_style: str, cfg: 
             reasons.append("attack_close_frac_low")
         if risk_vector.point_score < float(cfg["intent_regions"]["hard_thresholds"]["attack"]["point_score"]):
             reasons.append("attack_point_low")
+        realized_attack_profile = classify_realized_attack_profile(metrics.to_dict(), cfg)
+        target_pressure_profile = (attack_target or {}).get("pressure_profile")
+        compatibility = (cfg.get("attack_diversity") or {}).get("profile_compatibility") or {}
+        allowed_realized = set(compatibility.get(target_pressure_profile, [target_pressure_profile])) if target_pressure_profile else set()
+        if target_pressure_profile and realized_attack_profile not in allowed_realized:
+            reasons.append(f"attack_profile_mismatch:{target_pressure_profile}->{realized_attack_profile}")
+            category = category or "semantic"
     elif target_intent == "retreat":
         if risk_vector.disengage_score < float(cfg["intent_regions"]["hard_thresholds"]["retreat"]["disengage_score"]):
             reasons.append("retreat_disengage_low")
@@ -56,4 +76,6 @@ def validate_sample(traj, airframe, target_intent: str, target_style: str, cfg: 
         ambiguity_margin=margin,
         hard_constraint_report=hard_report,
         failure_category=category,
+        posterior_metrics=posterior_metrics,
+        realized_attack_profile=realized_attack_profile,
     )

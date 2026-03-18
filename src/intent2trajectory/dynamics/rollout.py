@@ -24,18 +24,30 @@ def _desired_velocity_from_commands(state: Dict, vr_cmd: float, vt_cmd: float, v
     return vx, vy, vz_cmd
 
 
+def _default_dynamics_model(stage, airframe, flight_mode: str) -> str:
+    if stage.dynamics_model != "auto":
+        return stage.dynamics_model
+    if flight_mode == "cruise" or airframe.family == "fixed_wing":
+        return "course_speed"
+    return "velocity_tracking"
+
+
 def rollout(plan, airframe, dt: float, cfg: Dict, initial_state: Dict) -> Trajectory:
     state = dict(initial_state)
     points: List[TrajectoryPoint] = []
     flight_modes: List[str] = []
+    dynamics_models: List[str] = []
     elapsed_global = 0.0
 
     for stage in plan:
         duration = stage.sampled_duration()
         steps = max(int(duration / dt), 1)
-        flight_mode = stage.flight_mode if stage.flight_mode != "auto" else ("hover" if airframe.family == "multirotor" or (airframe.family == "vtol" and airframe.hover_capable and stage.yaw_mode in {"station_facing", "station_scan"}) else "cruise")
+        flight_mode = stage.flight_mode if stage.flight_mode != "auto" else ("hover" if airframe.family == "multirotor" or (airframe.family == "vtol" and airframe.hover_capable and stage.yaw_mode in {"station_facing", "station_locked", "station_scan"}) else "cruise")
         if not flight_modes or flight_modes[-1] != flight_mode:
             flight_modes.append(flight_mode)
+        dynamics_model = _default_dynamics_model(stage, airframe, flight_mode)
+        if not dynamics_models or dynamics_models[-1] != dynamics_model:
+            dynamics_models.append(dynamics_model)
         for step_idx in range(steps):
             elapsed = step_idx * dt
             vr_cmd = evaluate_command(stage.vr_cmd, elapsed, duration)
@@ -43,7 +55,7 @@ def rollout(plan, airframe, dt: float, cfg: Dict, initial_state: Dict) -> Trajec
             vz_cmd = evaluate_command(stage.vz_cmd, elapsed, duration)
             desired_velocity = _desired_velocity_from_commands(state, vr_cmd, vt_cmd, vz_cmd)
             yaw_cmd = desired_yaw(stage.yaw_mode, (state["x"], state["y"], state["z"]), desired_velocity, elapsed_global)
-            if flight_mode == "cruise" or airframe.family == "fixed_wing":
+            if dynamics_model == "course_speed":
                 state = step_course_speed(state, desired_velocity, yaw_cmd, airframe, dt)
             else:
                 state = step_velocity_tracking(state, desired_velocity, yaw_cmd, airframe, dt)
@@ -64,4 +76,4 @@ def rollout(plan, airframe, dt: float, cfg: Dict, initial_state: Dict) -> Trajec
                     flight_mode=flight_mode,
                 )
             )
-    return Trajectory(points=points, dt=dt, stage_plan=list(plan), flight_mode_sequence=flight_modes)
+    return Trajectory(points=points, dt=dt, stage_plan=list(plan), flight_mode_sequence=flight_modes, dynamics_model_sequence=dynamics_models)

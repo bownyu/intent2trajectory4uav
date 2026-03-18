@@ -5,7 +5,7 @@ import json
 import math
 import random
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from .airframes.capability_matrix import list_allowed_styles, supports_style
 from .airframes.profiles import get_airframe, sample_airframe as _sample_airframe
@@ -15,7 +15,7 @@ from .exporters.meta_json import write_meta_json
 from .exporters.metadata_csv import build_failure_row, build_metadata_row
 from .exporters.origin_csv import build_origin_rows
 from .exporters.threat_csv import build_threat_rows
-from .models import AirframeProfile, RiskVector, SemanticTarget, StageSpec, Trajectory, ValidationResult
+from .models import AirframeProfile, SemanticTarget, StageSpec, Trajectory
 from .semantics.intent_scoring import score_intents
 from .semantics.risk_vector import compute_risk_vector
 from .semantics.station_metrics import compute_station_metrics
@@ -65,10 +65,10 @@ def select_style(intent: str, airframe: AirframeProfile, semantic_target: Semant
     return allowed[-1]
 
 
-def build_stage_plan(intent: str, style: str, airframe: AirframeProfile, semantic_target: SemanticTarget, cfg: Dict, rng: random.Random) -> List[StageSpec]:
+def build_stage_plan(intent: str, style: str, airframe: AirframeProfile, semantic_target: SemanticTarget, cfg: Dict, rng: random.Random, attack_profile: Optional[Dict] = None) -> List[StageSpec]:
     if intent == "attack":
-        plan = attack_templates.build_stage_plan(style, airframe, semantic_target, cfg, rng)
-    elif intent == "retreat":
+        return attack_templates.build_stage_plan(style, airframe, semantic_target, cfg, rng, attack_profile=attack_profile)
+    if intent == "retreat":
         plan = retreat_templates.build_stage_plan(style, airframe, semantic_target, cfg, rng)
     elif intent == "hover":
         plan = hover_templates.build_stage_plan(style, airframe, semantic_target, cfg, rng)
@@ -77,13 +77,11 @@ def build_stage_plan(intent: str, style: str, airframe: AirframeProfile, semanti
     else:
         raise ValueError(f"Unsupported intent '{intent}'")
 
-    duration_scale = {"attack": 1.6, "retreat": 1.35, "hover": 1.2, "loiter": 2.4}[intent]
+    duration_scale = {"retreat": 1.35, "hover": 1.2, "loiter": 2.4}[intent]
     for stage in plan:
         stage.duration_range = (stage.duration_range[0] * duration_scale, stage.duration_range[1] * duration_scale)
         if intent == "loiter":
             stage.vt_cmd.base *= 1.1
-        if intent == "attack":
-            stage.vr_cmd.base *= 1.08
     return plan
 
 
@@ -108,38 +106,76 @@ def _sample_angle(rng: random.Random) -> float:
     return rng.uniform(-math.pi, math.pi)
 
 
-def _sample_initial_state(intent: str, airframe: AirframeProfile, style: str, semantic_target: SemanticTarget, cfg: Dict, rng: random.Random, dt: float) -> Dict:
+def _sample_initial_state(intent: str, airframe: AirframeProfile, style: str, semantic_target: SemanticTarget, cfg: Dict, rng: random.Random, dt: float, attack_profile: Optional[Dict] = None) -> Dict:
     bands = cfg["intent_regions"]["bands"]
+    risk_bands = cfg["intent_regions"]["risk_bands"]
     angle = _sample_angle(rng)
-    if intent == "attack":
-        radius = rng.uniform(max(bands["hold"][1] * 1.1, cfg["intent_regions"]["risk_bands"]["sensitive"] * 3.0), cfg["intent_regions"]["risk_bands"]["outer_start"] * 0.6)
-    elif intent == "retreat":
-        radius = rng.uniform(cfg["intent_regions"]["risk_bands"]["sensitive"] * 1.2, bands["hold"][0] * 0.8)
-    elif intent == "hover":
-        radius = rng.uniform(bands["hold"][0] * 1.02, bands["hold"][1] * 0.98)
-    else:
-        radius = rng.uniform(bands["loiter"][0] * 1.02, bands["loiter"][1] * 0.98)
     altitude = rng.uniform(*airframe.preferred_altitude)
-    x = radius * math.cos(angle)
-    y = radius * math.sin(angle)
 
     if intent == "attack":
-        speed = max(airframe.cruise_speed() * 0.8, airframe.v_min)
-        course = math.atan2(-y, -x)
+        start_context = (attack_profile or {}).get("start_context", "outer_direct")
+        pressure_profile = (attack_profile or {}).get("pressure_profile", "staged_commit")
+        station_angle = math.atan2(-math.sin(angle), -math.cos(angle))
+        if start_context == "hold_ready":
+            radius = rng.uniform(bands["hold"][0] * 1.02, bands["hold"][1] * 0.98)
+            speed = 0.6 if airframe.family == "multirotor" else max(airframe.v_min, airframe.cruise_speed() * 0.35)
+            course = station_angle + rng.uniform(-0.55, 0.55)
+            yaw = station_angle
+        elif start_context == "loiter_ready":
+            radius = rng.uniform(bands["loiter"][0] * 1.02, bands["loiter"][1] * 0.98)
+            speed = max(airframe.v_min, airframe.cruise_speed() * 0.55) if airframe.family != "multirotor" else airframe.cruise_speed() * 0.5
+            tangent = angle + math.pi / 2.0
+            course = tangent + rng.choice([-0.35, 0.35])
+            yaw = station_angle
+        elif start_context == "near_static":
+            radius = rng.uniform(risk_bands["sensitive"] * 1.35, bands["hold"][0] * 0.98)
+            speed = 0.3 if airframe.family == "multirotor" else max(airframe.v_min, airframe.cruise_speed() * 0.22)
+            course = station_angle + rng.uniform(-0.2, 0.2)
+            yaw = station_angle
+        else:
+            radius = rng.uniform(max(bands["hold"][1] * 1.1, risk_bands["sensitive"] * 3.0), risk_bands["outer_start"] * 0.6)
+            speed = max(airframe.cruise_speed() * 0.8, airframe.v_min)
+            course = station_angle
+            yaw = station_angle if pressure_profile in {"continuous_pressure", "probe_commit"} else course
+        if pressure_profile == "immediate_dash":
+            speed = max(speed, airframe.dash_speed() * 0.72)
+            yaw = course
     elif intent == "retreat":
+        radius = rng.uniform(risk_bands["sensitive"] * 1.2, bands["hold"][0] * 0.8)
+        x = radius * math.cos(angle)
+        y = radius * math.sin(angle)
         speed = max(airframe.cruise_speed() * 0.75, airframe.v_min)
         course = math.atan2(y, x)
-    elif intent == "loiter":
+        yaw = course
+        vx = speed * math.cos(course)
+        vy = speed * math.sin(course)
+        return {"x": x, "y": y, "z": altitude, "vx": vx, "vy": vy, "vz": 0.0, "yaw": yaw, "course": course, "speed": max(speed, airframe.v_min)}
+    elif intent == "hover":
+        radius = rng.uniform(bands["hold"][0] * 1.02, bands["hold"][1] * 0.98)
+        x = radius * math.cos(angle)
+        y = radius * math.sin(angle)
+        speed = 0.4 if airframe.family == "multirotor" else max(airframe.v_min, airframe.cruise_speed() * 0.45)
+        course = math.atan2(y, x) + math.pi / 2.0
+        yaw = math.atan2(-y, -x)
+        vx = speed * math.cos(course)
+        vy = speed * math.sin(course)
+        return {"x": x, "y": y, "z": altitude, "vx": vx, "vy": vy, "vz": 0.0, "yaw": yaw, "course": course, "speed": max(speed, airframe.v_min)}
+    else:
+        radius = rng.uniform(bands["loiter"][0] * 1.02, bands["loiter"][1] * 0.98)
+        x = radius * math.cos(angle)
+        y = radius * math.sin(angle)
         speed = max(airframe.cruise_speed() * 0.55, airframe.v_min)
         tangent = math.atan2(y, x) + math.pi / 2.0
         course = tangent
-    else:
-        speed = 0.4 if airframe.family == "multirotor" else max(airframe.v_min, airframe.cruise_speed() * 0.45)
-        course = math.atan2(y, x) + math.pi / 2.0
+        yaw = math.atan2(-y, -x)
+        vx = speed * math.cos(course)
+        vy = speed * math.sin(course)
+        return {"x": x, "y": y, "z": altitude, "vx": vx, "vy": vy, "vz": 0.0, "yaw": yaw, "course": course, "speed": max(speed, airframe.v_min)}
 
+    x = radius * math.cos(angle)
+    y = radius * math.sin(angle)
     vx = speed * math.cos(course)
     vy = speed * math.sin(course)
-    yaw = course if intent in {"attack", "retreat"} else math.atan2(-y, -x)
     return {
         "x": x,
         "y": y,
@@ -158,7 +194,7 @@ def _repair_stage_plan(plan: List[StageSpec]) -> List[StageSpec]:
     for stage in plan:
         clone = StageSpec(
             name=stage.name,
-            duration_range=(stage.duration_range[0] * 1.25, stage.duration_range[1] * 1.25),
+            duration_range=(stage.duration_range[0] * 1.15, stage.duration_range[1] * 1.15),
             terminate_rule=stage.terminate_rule,
             vr_cmd=stage.vr_cmd.__class__(**stage.vr_cmd.to_dict()),
             vt_cmd=stage.vt_cmd.__class__(**stage.vt_cmd.to_dict()),
@@ -167,13 +203,26 @@ def _repair_stage_plan(plan: List[StageSpec]) -> List[StageSpec]:
             noise_profile=stage.noise_profile,
             semantic_effects=dict(stage.semantic_effects),
             flight_mode=stage.flight_mode,
+            dynamics_model=stage.dynamics_model,
         )
         clone.vr_cmd.amplitude *= 0.8
         clone.vt_cmd.amplitude *= 0.8
         clone.vz_cmd.amplitude *= 0.8
-        clone.vr_cmd.base *= 0.95
+        clone.vr_cmd.base *= 0.97
         repaired.append(clone)
     return repaired
+
+
+def _metadata_defaults_for_attack(validation) -> Dict[str, float | str]:
+    posterior = dict(validation.posterior_metrics)
+    return {
+        "pressure_profile_realized": validation.realized_attack_profile,
+        "commit_onset_ratio": float(posterior.get("commit_onset_ratio", 0.0)),
+        "terminal_spike_ratio": float(posterior.get("terminal_spike_ratio", 0.0)),
+        "pressure_persistence": float(posterior.get("pressure_persistence", 0.0)),
+        "body_point_persistence": float(posterior.get("body_point_persistence", 0.0)),
+        "lateral_pressure_ratio": float(posterior.get("lateral_pressure_ratio", 0.0)),
+    }
 
 
 def generate_sample(intent: str, seed: int, profile: Dict, variant_name: Optional[str] = None, airframe_name: Optional[str] = None) -> Dict:
@@ -183,17 +232,23 @@ def generate_sample(intent: str, seed: int, profile: Dict, variant_name: Optiona
     dt = float(cfg.get("dt", 0.2))
     airframe = get_airframe(cfg, airframe_name) if airframe_name else sample_airframe(normalized_intent, cfg, rng)
     semantic_target = sample_semantic_target(normalized_intent, cfg, rng)
-    style = select_style(normalized_intent, airframe, semantic_target, cfg, rng, requested_style=requested_style)
-    stage_plan = build_stage_plan(normalized_intent, style, airframe, semantic_target, cfg, rng)
-    initial_state = _sample_initial_state(normalized_intent, airframe, style, semantic_target, cfg, rng, dt)
+
+    attack_profile = None
+    if normalized_intent == "attack":
+        attack_profile = attack_templates.select_attack_profile(airframe, cfg, rng, requested_style=requested_style)
+        style = attack_profile["motion_style"]
+    else:
+        style = select_style(normalized_intent, airframe, semantic_target, cfg, rng, requested_style=requested_style)
+    stage_plan = build_stage_plan(normalized_intent, style, airframe, semantic_target, cfg, rng, attack_profile=attack_profile)
+    initial_state = _sample_initial_state(normalized_intent, airframe, style, semantic_target, cfg, rng, dt, attack_profile=attack_profile)
 
     repair_count = 0
     trajectory = rollout(stage_plan, airframe, dt, cfg, initial_state)
-    validation = _validate_trajectory_sample(trajectory, airframe, normalized_intent, style, cfg)
+    validation = _validate_trajectory_sample(trajectory, airframe, normalized_intent, style, cfg, attack_target=attack_profile)
     if not validation.valid:
         repaired_plan = _repair_stage_plan(stage_plan)
         repaired_trajectory = rollout(repaired_plan, airframe, dt, cfg, initial_state)
-        repaired_validation = _validate_trajectory_sample(repaired_trajectory, airframe, normalized_intent, style, cfg)
+        repaired_validation = _validate_trajectory_sample(repaired_trajectory, airframe, normalized_intent, style, cfg, attack_target=attack_profile)
         if repaired_validation.valid or len(repaired_validation.reasons) < len(validation.reasons):
             repair_count = 1
             stage_plan = repaired_plan
@@ -226,6 +281,7 @@ def generate_sample(intent: str, seed: int, profile: Dict, variant_name: Optiona
         "station_metrics": validation.metrics.to_dict(),
         "stage_plan": [stage.to_dict() for stage in stage_plan],
         "flight_mode_sequence": list(trajectory.flight_mode_sequence),
+        "dynamics_model_sequence": list(trajectory.dynamics_model_sequence),
         "hard_constraint_report": dict(validation.hard_constraint_report),
         "ambiguity_margin": validation.ambiguity_margin,
         "repair_count": repair_count,
@@ -236,6 +292,19 @@ def generate_sample(intent: str, seed: int, profile: Dict, variant_name: Optiona
         "valid": validation.valid,
         "reasons": list(validation.reasons),
         "failure_category": validation.failure_category,
+        "posterior_metrics": dict(validation.posterior_metrics),
+        "initial_state": dict(initial_state),
+        "start_context": attack_profile.get("start_context", "") if attack_profile else "",
+        "pressure_profile_target": attack_profile.get("pressure_profile", "") if attack_profile else "",
+        "maneuver_profile": attack_profile.get("maneuver_profile", "") if attack_profile else "",
+        "dynamics_model": attack_profile.get("dynamics_model", trajectory.dynamics_model_sequence[0] if trajectory.dynamics_model_sequence else "") if attack_profile else (trajectory.dynamics_model_sequence[0] if trajectory.dynamics_model_sequence else ""),
+        "yaw_mode_sequence": [stage.yaw_mode for stage in stage_plan],
+        "pressure_profile_realized": validation.realized_attack_profile,
+        "commit_onset_ratio": float(validation.posterior_metrics.get("commit_onset_ratio", 0.0)),
+        "terminal_spike_ratio": float(validation.posterior_metrics.get("terminal_spike_ratio", 0.0)),
+        "pressure_persistence": float(validation.posterior_metrics.get("pressure_persistence", 0.0)),
+        "body_point_persistence": float(validation.posterior_metrics.get("body_point_persistence", 0.0)),
+        "lateral_pressure_ratio": float(validation.posterior_metrics.get("lateral_pressure_ratio", 0.0)),
     }
     sample = {
         "sample_id": metadata["sample_id"],
@@ -260,7 +329,16 @@ def validate_sample(sample: Dict, profile: Dict) -> Dict:
         trajectory = regenerated["_trajectory_obj"]
         airframe = regenerated["_airframe_obj"]
         sample.update(regenerated)
-    result = _validate_trajectory_sample(trajectory, airframe, sample["metadata"]["primary_intent"], sample["metadata"]["motion_style"], cfg)
+    attack_target = None
+    if sample["metadata"]["primary_intent"] == "attack":
+        attack_target = {
+            "start_context": sample["metadata"].get("start_context", ""),
+            "pressure_profile": sample["metadata"].get("pressure_profile_target", ""),
+            "maneuver_profile": sample["metadata"].get("maneuver_profile", ""),
+            "motion_style": sample["metadata"].get("motion_style", ""),
+            "dynamics_model": sample["metadata"].get("dynamics_model", ""),
+        }
+    result = _validate_trajectory_sample(trajectory, airframe, sample["metadata"]["primary_intent"], sample["metadata"]["motion_style"], cfg, attack_target=attack_target)
     sample["validation"] = result.to_dict()
     sample["metadata"]["station_metrics"] = result.metrics.to_dict()
     sample["metadata"]["risk_vector"] = result.risk_vector.to_dict()
@@ -270,6 +348,13 @@ def validate_sample(sample: Dict, profile: Dict) -> Dict:
     sample["metadata"]["valid"] = result.valid
     sample["metadata"]["reasons"] = list(result.reasons)
     sample["metadata"]["failure_category"] = result.failure_category
+    sample["metadata"]["posterior_metrics"] = dict(result.posterior_metrics)
+    sample["metadata"]["pressure_profile_realized"] = result.realized_attack_profile
+    sample["metadata"]["commit_onset_ratio"] = float(result.posterior_metrics.get("commit_onset_ratio", 0.0))
+    sample["metadata"]["terminal_spike_ratio"] = float(result.posterior_metrics.get("terminal_spike_ratio", 0.0))
+    sample["metadata"]["pressure_persistence"] = float(result.posterior_metrics.get("pressure_persistence", 0.0))
+    sample["metadata"]["body_point_persistence"] = float(result.posterior_metrics.get("body_point_persistence", 0.0))
+    sample["metadata"]["lateral_pressure_ratio"] = float(result.posterior_metrics.get("lateral_pressure_ratio", 0.0))
     return result.to_dict()
 
 
@@ -336,7 +421,7 @@ def generate_dataset(config_path: str) -> Dict:
     if "threat" in output_formats and not cfg.get("threat_export", {}).get("station"):
         raise ValueError("threat export requires threat_export.station")
 
-    diversity_filter = DiversityFilter(cfg.get("diversity") or {})
+    diversity_filter = DiversityFilter(cfg)
     metadata_rows: List[Dict[str, str]] = []
     failure_rows: List[Dict[str, str]] = []
     style_counts: Dict[str, Dict[str, int]] = {}
@@ -407,5 +492,3 @@ def generate_dataset(config_path: str) -> Dict:
         "style_counts": style_counts,
         "variant_counts": style_counts,
     }
-
-

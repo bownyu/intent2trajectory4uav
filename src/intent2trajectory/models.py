@@ -29,6 +29,7 @@ class StageSpec:
     noise_profile: str
     semantic_effects: Dict[str, float] = field(default_factory=dict)
     flight_mode: str = "auto"
+    dynamics_model: str = "auto"
 
     def sampled_duration(self) -> float:
         return 0.5 * (self.duration_range[0] + self.duration_range[1])
@@ -61,6 +62,8 @@ class AirframeProfile:
     allowed_styles: Dict[str, List[str]]
     validator_overrides: Dict[str, float] = field(default_factory=dict)
     selection_weight: float = 1.0
+    enabled: bool = True
+    attack_capability: Dict[str, Any] = field(default_factory=dict)
 
     def cruise_speed(self) -> float:
         return 0.5 * (self.v_cruise_range[0] + self.v_cruise_range[1])
@@ -117,11 +120,13 @@ class Trajectory:
     dt: float
     stage_plan: List[StageSpec]
     flight_mode_sequence: List[str]
+    dynamics_model_sequence: List[str] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "dt": self.dt,
             "flight_mode_sequence": list(self.flight_mode_sequence),
+            "dynamics_model_sequence": list(self.dynamics_model_sequence),
             "stage_plan": [stage.to_dict() for stage in self.stage_plan],
             "points": [point.to_dict() for point in self.points],
         }
@@ -181,6 +186,8 @@ class ValidationResult:
     ambiguity_margin: float
     hard_constraint_report: Dict[str, Any]
     failure_category: str = ""
+    posterior_metrics: Dict[str, Any] = field(default_factory=dict)
+    realized_attack_profile: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -192,6 +199,8 @@ class ValidationResult:
             "ambiguity_margin": self.ambiguity_margin,
             "hard_constraint_report": dict(self.hard_constraint_report),
             "failure_category": self.failure_category,
+            "posterior_metrics": dict(self.posterior_metrics),
+            "realized_attack_profile": self.realized_attack_profile,
         }
 
 
