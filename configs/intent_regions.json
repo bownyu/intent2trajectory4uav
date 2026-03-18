@@ -1,0 +1,194 @@
+{
+  "risk_bands": {
+    "core": 120.0,
+    "sensitive": 260.0,
+    "outer_start": 2400.0,
+    "exit": 4200.0
+  },
+  "bands": {
+    "hold": [
+      700.0,
+      1050.0
+    ],
+    "loiter": [
+      280.0,
+      520.0
+    ],
+    "terminal": [
+      120.0,
+      260.0
+    ],
+    "escape": [
+      1800.0,
+      4200.0
+    ]
+  },
+  "parameters": {
+    "v_close_thr": 0.5,
+    "v_open_thr": 0.5,
+    "alpha_course_deg": 30.0,
+    "alpha_yaw_deg": 35.0,
+    "c_ref": 1.0,
+    "n_sign_ref": 4.0,
+    "n_abort_ref": 2.0,
+    "rho_ref": 1.8,
+    "delta_r_probe": 80.0,
+    "delta_r_abort": 60.0,
+    "delta_r_recommit": 60.0,
+    "w_abort": 8.0,
+    "td_ref": 1.5,
+    "dr_tol": 5.0,
+    "v_r_eps": 0.2
+  },
+  "point_weights": {
+    "attack": {
+      "course": 0.7,
+      "yaw": 0.3
+    },
+    "retreat": {
+      "course": 0.6,
+      "yaw": 0.4
+    },
+    "hover": {
+      "course": 0.3,
+      "yaw": 0.7
+    },
+    "loiter": {
+      "course": 0.3,
+      "yaw": 0.7
+    }
+  },
+  "hover_limits": {
+    "c_hover_max": 0.7
+  },
+  "hard_thresholds": {
+    "attack": {
+      "close_frac": 0.4,
+      "point_score": 0.45
+    },
+    "retreat": {
+      "disengage_score": 0.55
+    },
+    "hover": {
+      "dwell_hold": 0.65
+    },
+    "loiter": {
+      "dwell_loiter": 0.6,
+      "encircle_cycles": 0.18
+    }
+  },
+  "intent_regions": {
+    "attack": {
+      "close": [
+        0.65,
+        1.0
+      ],
+      "dwell": [
+        0.0,
+        0.35
+      ],
+      "encircle": [
+        0.0,
+        0.55
+      ],
+      "point": [
+        0.55,
+        1.0
+      ],
+      "uncertain": [
+        0.0,
+        0.85
+      ],
+      "disengage": [
+        0.0,
+        0.25
+      ],
+      "score_min": 0.55,
+      "margin_min": 0.05
+    },
+    "retreat": {
+      "close": [
+        0.0,
+        0.18
+      ],
+      "dwell": [
+        0.0,
+        0.35
+      ],
+      "encircle": [
+        0.0,
+        0.4
+      ],
+      "point": [
+        0.0,
+        0.3
+      ],
+      "uncertain": [
+        0.0,
+        0.55
+      ],
+      "disengage": [
+        0.65,
+        1.0
+      ],
+      "score_min": 0.68,
+      "margin_min": 0.04
+    },
+    "hover": {
+      "close": [
+        0.0,
+        0.2
+      ],
+      "dwell": [
+        0.75,
+        1.0
+      ],
+      "encircle": [
+        0.0,
+        0.25
+      ],
+      "point": [
+        0.0,
+        0.55
+      ],
+      "uncertain": [
+        0.0,
+        0.25
+      ],
+      "disengage": [
+        0.0,
+        0.2
+      ],
+      "score_min": 0.7,
+      "margin_min": 0.06
+    },
+    "loiter": {
+      "close": [
+        0.05,
+        0.35
+      ],
+      "dwell": [
+        0.7,
+        1.0
+      ],
+      "encircle": [
+        0.55,
+        1.0
+      ],
+      "point": [
+        0.1,
+        0.5
+      ],
+      "uncertain": [
+        0.1,
+        0.6
+      ],
+      "disengage": [
+        0.0,
+        0.25
+      ],
+      "score_min": 0.52,
+      "margin_min": 0.05
+    }
+  }
+}

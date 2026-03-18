@@ -1,188 +1,85 @@
-﻿# intent2trajectory (Kinematic Generator)
+# intent2trajectory
 
-This repository implements the current `intent -> trajectory` kinematic generation stage for five UAV intent classes:
+一个面向站点相对风险语义的无人机意图轨迹生成器。当前生成器不再围绕几何模板命名，而是围绕 `attack`、`retreat`、`hover`、`loiter` 四类风险语义意图生成、验证和导出样本。
 
-- `hover`
-- `straight_penetration`
-- `non_straight_penetration`
-- `loiter`
-- `retreat`
+## 当前能力
 
-It is a configurable, reproducible trajectory generator with sample validation, metadata export, and a GUI trajectory player.
+- 统一的四类顶层意图：`attack`、`retreat`、`hover`、`loiter`
+- 同一意图下的 `motion_style` 风格采样
+- `AirframeProfile` 约束下的阶段计划与 rollout
+- 站点相对指标、六维 `risk_vector` 和 intent 连续评分
+- 硬约束检查、轻量修复、重采样
+- 多样性过滤和失败原因分类
+- `origin` / `threat` / `meta` 三类导出
 
-## Current Scope
+## 配置结构
 
-Implemented in the current stage:
+入口配置：`configs/dataset_config.json`
 
-- config-driven batch generation
-- per-intent sample count control via `class_quota`
-- weighted maneuver variants for `non_straight_penetration` and `loiter`
-- unified CSV export with `ref_*` and reserved `act_*` columns
-- `metadata.csv` export including `variant_name`, `variant_summary`, and failure attempt information
-- terminal progress output during dataset generation
-- semantic validation for key intent classes
-- GUI playback for generated trajectories
+外部能力配置：
+- `configs/airframes.json`：机型档案、能力边界、允许风格
+- `configs/intent_regions.json`：风险带、语义区域、评分阈值
+- `configs/style_library.json`：各意图的风格模板与阶段定义
 
-Not implemented yet:
+## 主要输出
 
-- PX4 / JSBSim closed-loop simulation
-- `.ulg` parsing and actual trajectory backfill
-- simulation-corrected `act_*` data export
+- `output_root/origin/<intent>/*.csv`：逐时刻轨迹明细
+- `output_root/threat/<intent>/*.csv`：1 Hz 威胁导出
+- `output_root/meta/<intent>/*.json`：样本级富语义 metadata
+- `output_root/metadata.csv`：数据集级摘要
+- `output_root/failures.csv`：失败样本摘要（若存在）
 
-## Public APIs
+样本 metadata 重点字段：
+- `primary_intent`
+- `motion_style`
+- `airframe_name`
+- `airframe_family`
+- `flight_mode_sequence`
+- `semantic_target`
+- `risk_vector`
+- `intent_scores`
+- `stage_plan`
+- `hard_constraint_report`
+- `repair_count`
+- `ambiguity_margin`
 
-- `generate_dataset(config_path)`
-- `generate_sample(intent, seed, profile)`
-- `validate_sample(sample, profile)`
+## 运行方式
 
-Implemented in [src/intent2trajectory/generator.py](E:/CodeProject/UAV_Releated/intent2trajectory/src/intent2trajectory/generator.py).
-
-## Config Overview
-
-Primary config file:
-
-- `configs/dataset_config.json`
-
-Key top-level fields:
-
-- `output_root`: dataset output directory
-- `seed`: base seed for reproducible generation
-- `max_resample_attempts`: retry limit when validation fails
-- `dt`: sampling interval in seconds
-- `max_time`: hard cap for one sample duration
-- `class_quota`: per-intent sample count control
-- `intent_profiles`: per-intent generation rules
-- `constraints`: validation thresholds and space bounds
-- `progress.enabled`: terminal progress visibility
-- `failure_logging.include_failed_metadata`: preserve failed-sample metadata for later analysis
-
-### Sample Count Control
-
-You control how many samples are generated for each intent through `class_quota`:
-
-```json
-"class_quota": {
-  "hover": 100,
-  "straight_penetration": 100,
-  "non_straight_penetration": 100,
-  "loiter": 100,
-  "retreat": 100
-}
+生成数据集：
+```powershell
+python scripts/export_dual_format.py --config configs/dataset_config.json --formats origin threat --output-root dataset_workspace
 ```
 
-### Variant Control
-
-`non_straight_penetration` and `loiter` use weighted variants.
-
-`non_straight_penetration` variants:
-
-- `weave_approach`
-- `climb_then_dive`
-- `turn_then_dive`
-- `zigzag_dive`
-
-`loiter` variants:
-
-- `circle_hold`
-- `ellipse_hold`
-- `figure8_hold`
-- `offset_orbit`
-
-Each variant has a `weight` field that controls its relative sampling probability.
-
-## Execution Route
-
-Current complete execution route for the kinematic stage:
-
-1. Edit `configs/dataset_config.json`
-2. Run `generate_dataset(...)`
-3. Generator samples trajectories by intent and variant
-4. `validate_sample(...)` checks kinematic and semantic constraints
-5. Accepted samples are written as CSV files under intent-specific folders
-6. Each CSV row includes `intent`, `variant_name`, and `variant_summary`
-7. Output filenames include the maneuver subtype for direct terminal browsing
-8. `metadata.csv` records seed, variant, timing, attempt count, and failure reasons
-9. Use the GUI player to inspect generated trajectories
-
-For the original full project vision, the route is still incomplete because simulation and `.ulg` backfill are not implemented.
-
-## Quick Start
-
-Generate a dataset:
-
+直接调用核心模块：
 ```powershell
 python -c "import sys; sys.path.insert(0, 'src'); from intent2trajectory.generator import generate_dataset; print(generate_dataset('configs/dataset_config.json'))"
 ```
 
-Outputs:
-
-- class directories under `output_root` such as `0_hover`, `1_straight_penetration`, `2_non_straight_penetration`, `3_loiter`, `4_retreat`
-- per-sample CSV with `intent`, `variant_name`, `variant_summary`, `ref_*`, and reserved `act_*` fields
-- subtype-labeled filenames such as `loiter_circle_hold_0001_D1450_V10.csv`
-- `metadata.csv` ledger with generated and failed sample records
-
-## Metadata
-
-`metadata.csv` includes sample-level fields such as:
-
-- `sample_id`
-- `intent`
-- `variant_name`
-- `variant_summary`
-- `random_seed`
-- `attempt_count`
-- `start_x`, `start_y`, `start_z`
-- `base_speed`
-- `simulation_time`
-- `yaw_policy`
-- `noise_profile`
-- `status`
-- `failure_reason`
-
-## Tests
-
-Generator tests:
-
+运行核心测试：
 ```powershell
-pytest tests/test_generator.py -q
+pytest tests/test_generator.py tests/test_export_dual_format_script.py -q --basetemp=tests/.tmp_pytest
 ```
 
-Visualization tests:
+## Python 接口
 
-```powershell
-pytest tests/test_visualization.py -q
-```
+- `load_config(config_path)`：读取入口配置并展开外部能力配置
+- `generate_sample(intent, seed, profile, variant_name=None, airframe_name=None)`：生成单个样本；`variant_name` 兼容旧接口，但内部会映射到新 `motion_style`
+- `validate_sample(sample, profile)`：执行硬约束、风险向量和 intent 判定
+- `generate_dataset(config_path)`：按配额批量生成数据集
 
-Recommended full project test command for the current codebase:
+## 旧标签迁移
 
-```powershell
-pytest tests -q
-```
+旧标签已迁移到新体系：
+- `straight_penetration` -> `attack.direct_commit`
+- `non_straight_penetration.weave_approach` -> `attack.weave_commit`
+- `non_straight_penetration.climb_then_dive` -> `attack.climb_dive_commit`
+- `non_straight_penetration.turn_then_dive` -> `attack.turn_dive_commit`
+- `non_straight_penetration.zigzag_dive` -> `attack.zigzag_commit`
+- `hover.standoff_hover` -> `hover.drift_hold`
+- `loiter.surveillance_loiter` -> `loiter.circle_loiter`
+- `retreat.direct_escape` -> `retreat.direct_breakaway`
+- `retreat.arc_escape` -> `retreat.arc_breakaway`
+- `retreat.zigzag_escape` -> `retreat.zigzag_breakaway`
+- `retreat.climb_escape` -> `retreat.climb_breakaway`
 
-## GUI Trajectory Player
-
-```powershell
-python scripts/trajectory_player_gui.py --input-dir dataset_workspace
-```
-
-Features:
-
-- choose input directory and refresh CSV list
-- select one CSV and render a 3D trajectory
-- real-time playback based on `time_relative` or `time`
-- play / pause / reset and speed multiplier control
-- position column priority: `act_pos_*` -> `ref_pos_*` -> `pos_*`
-
-## Related Docs
-
-- `docs/轨迹生成规则（intent2trajectory）.md`
-- `docs/worklog/代码实现整理.md`
-- `docs/worklog/2026-03-06-implementation-status.md`
-- `docs/plan/2026-03-06-intent-trajectory-variants-design.md`
-
-## Planned WSL Pipeline
-
-- `docs/plans/2026-03-06-wsl-px4-single-csv-pipeline-design.md`
-- `docs/plans/2026-03-06-wsl-px4-single-csv-pipeline.md`
-
-
+更完整的迁移说明见 `docs/trajectory-generator-migration.md`。

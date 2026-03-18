@@ -1,0 +1,173 @@
+{
+  "profiles": {
+    "quad_small": {
+      "family": "multirotor",
+      "hover_capable": true,
+      "selection_weight": 0.45,
+      "v_min": 0.0,
+      "v_cruise_range": [
+        7.0,
+        11.0
+      ],
+      "v_dash_range": [
+        10.0,
+        16.0
+      ],
+      "a_long_max": 4.0,
+      "a_brake_max": 4.5,
+      "a_lat_max": 4.0,
+      "climb_rate_max": 4.0,
+      "descent_rate_max": 3.5,
+      "jerk_max": 8.0,
+      "yaw_rate_max": 1.5,
+      "turn_rate_max": 1.6,
+      "min_turn_radius": 20.0,
+      "control_tau": 1.2,
+      "preferred_altitude": [
+        80.0,
+        220.0
+      ],
+      "allowed_styles": {
+        "attack": [
+          "direct_commit",
+          "weave_commit",
+          "climb_dive_commit",
+          "zigzag_commit",
+          "probe_recommit"
+        ],
+        "retreat": [
+          "direct_breakaway",
+          "arc_breakaway",
+          "zigzag_breakaway",
+          "climb_breakaway"
+        ],
+        "hover": [
+          "true_hover",
+          "drift_hold"
+        ],
+        "loiter": [
+          "circle_loiter",
+          "ellipse_loiter",
+          "petal_loiter",
+          "probe_loiter"
+        ]
+      },
+      "validator_overrides": {
+        "c_hover_max": 0.35
+      }
+    },
+    "fixed_wing_patrol": {
+      "family": "fixed_wing",
+      "hover_capable": false,
+      "selection_weight": 0.35,
+      "v_min": 8.0,
+      "v_cruise_range": [
+        12.0,
+        18.0
+      ],
+      "v_dash_range": [
+        18.0,
+        26.0
+      ],
+      "a_long_max": 4.0,
+      "a_brake_max": 3.0,
+      "a_lat_max": 7.0,
+      "climb_rate_max": 5.0,
+      "descent_rate_max": 4.0,
+      "jerk_max": 10.0,
+      "yaw_rate_max": 0.8,
+      "turn_rate_max": 0.45,
+      "min_turn_radius": 15.0,
+      "control_tau": 2.0,
+      "preferred_altitude": [
+        140.0,
+        320.0
+      ],
+      "allowed_styles": {
+        "attack": [
+          "direct_commit",
+          "weave_commit",
+          "climb_dive_commit",
+          "turn_dive_commit",
+          "zigzag_commit"
+        ],
+        "retreat": [
+          "direct_breakaway",
+          "arc_breakaway",
+          "zigzag_breakaway",
+          "climb_breakaway"
+        ],
+        "hover": [
+          "corridor_hold",
+          "pseudo_hover_racetrack"
+        ],
+        "loiter": [
+          "circle_loiter",
+          "ellipse_loiter",
+          "racetrack_loiter",
+          "probe_loiter"
+        ]
+      },
+      "validator_overrides": {
+        "c_hover_max": 0.75
+      }
+    },
+    "vtol_hybrid": {
+      "family": "vtol",
+      "hover_capable": true,
+      "selection_weight": 0.2,
+      "v_min": 5.0,
+      "v_cruise_range": [
+        10.0,
+        14.0
+      ],
+      "v_dash_range": [
+        15.0,
+        22.0
+      ],
+      "a_long_max": 4.5,
+      "a_brake_max": 4.0,
+      "a_lat_max": 5.5,
+      "climb_rate_max": 4.5,
+      "descent_rate_max": 4.0,
+      "jerk_max": 9.0,
+      "yaw_rate_max": 1.2,
+      "turn_rate_max": 0.9,
+      "min_turn_radius": 45.0,
+      "control_tau": 1.5,
+      "preferred_altitude": [
+        100.0,
+        280.0
+      ],
+      "allowed_styles": {
+        "attack": [
+          "direct_commit",
+          "weave_commit",
+          "climb_dive_commit",
+          "turn_dive_commit",
+          "probe_recommit"
+        ],
+        "retreat": [
+          "direct_breakaway",
+          "arc_breakaway",
+          "zigzag_breakaway",
+          "climb_breakaway"
+        ],
+        "hover": [
+          "drift_hold",
+          "corridor_hold",
+          "pseudo_hover_racetrack"
+        ],
+        "loiter": [
+          "circle_loiter",
+          "ellipse_loiter",
+          "racetrack_loiter",
+          "probe_loiter"
+        ]
+      },
+      "validator_overrides": {
+        "c_hover_max": 0.55
+      }
+    }
+  }
+}
